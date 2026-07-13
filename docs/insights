@@ -1,0 +1,99 @@
+# Business Insights
+
+This document records the most relevant business insights discovered during the project.
+
+Insights are continuously updated as new analyses are completed.
+
+---
+
+# Insight 001 — Customer Consolidation
+
+## Finding
+
+Several customers were registered multiple times in the operational system.
+
+## Business Impact
+
+Using the customer registration ID fragmented customer purchasing history and produced inaccurate rankings.
+
+## Action
+
+Customers were consolidated using standardized Customer Name and CPF/CNPJ.
+
+---
+
+# Insight 002 — Revenue and Profit Ranking
+
+## Finding
+
+After customer consolidation, the highest revenue customer was also identified as the highest profit customer.
+
+## Business Impact
+
+The initial analysis produced different conclusions because duplicate customer registrations split customer histories.
+
+---
+
+# Insight 003 — Customer Frequency
+
+## Finding
+
+Some customers purchase almost as frequently as the company's best customer but generate considerably lower profit.
+
+## Business Impact
+
+Purchase frequency alone is not a reliable indicator of customer value.
+
+## Recommendation
+
+Investigate:
+
+* Product mix
+* Discount policies
+* Product margins
+* Commercial strategy
+
+---
+
+# Insight 004 — Product Classification
+
+## Finding
+
+The original ERP product classification was too detailed for strategic analysis.
+
+## Business Impact
+
+Commercial analyses became difficult to interpret.
+
+## Action
+
+Original product subgroups were manually reorganized into broader Product Groups.
+
+---
+
+# Insight 005 — Data Quality
+
+## Finding
+
+Customer registration quality has a direct impact on analytical results.
+
+## Business Impact
+
+Incorrect customer identification may produce inaccurate:
+
+* Revenue rankings
+* Profit rankings
+* Customer segmentation
+* Inactivity analysis
+
+## Recommendation
+
+Customer registration quality should be continuously monitored.
+
+---
+
+# Lessons Learned
+
+This project demonstrated that business understanding and data quality are fundamental before creating dashboards.
+
+The most valuable insights were generated during data exploration and preparation rather than during data visualization.
