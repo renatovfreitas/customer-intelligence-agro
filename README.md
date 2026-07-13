@@ -49,11 +49,11 @@ This project aims to answer these questions through Business Intelligence techni
 
 ## Dataset
 
-The project uses approximately **24,000 sales item records**.
+The project uses approximately **24,000 sales item records** extracted from the company's transactional database.
 
-Each row represents a single product sold within a sales transaction.
+Each row represents one product item sold within a sales transaction. Multiple item records may share the same Sale Control Number when several products were included in the same sale.
 
-Current columns include:
+The enriched analytical dataset includes:
 
 * Sale Item ID
 * Sale Control Number
@@ -67,6 +67,8 @@ Current columns include:
 * Unit Sale Price
 * Quantity
 * Unit Cost
+
+The Product Group field is a derived analytical attribute. It maps the company's detailed product subgroups into broader categories suitable for commercial and customer analysis.
 
 ---
 
