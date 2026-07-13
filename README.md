@@ -122,11 +122,12 @@ Business Recommendations
 
 ## Current Findings
 
-* Duplicate customer registrations significantly changed customer rankings.
-* Customer consolidation using **Customer Name + CPF/CNPJ** produced more reliable business results.
-* Some customers with good historical performance have been inactive for more than 300 days.
-* Customer frequency alone is not sufficient to determine customer value.
-* Product categories were reorganized into macro groups to improve business analysis.
+* Duplicate customer registrations fragmented sales histories and initially produced inaccurate customer rankings and inactivity indicators.
+* Consolidating customers using standardized customer name and CPF/CNPJ produced more reliable revenue, profit, frequency and recency metrics.
+* After customer consolidation, the customer with the highest revenue was also identified as the most profitable customer.
+* Some customers with high purchase frequency generate considerably less profit than other customers with similar purchasing frequency.
+* Customer frequency alone is therefore not sufficient to determine customer value.
+* The original product classification was too granular for strategic analysis, so product subgroups were mapped into broader business-oriented product groups.
 
 ---
 
