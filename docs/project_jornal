@@ -1,0 +1,129 @@
+# Project Journal
+
+This journal documents the evolution of the project from its initial planning to the final business solution.
+
+---
+
+# Sprint 1 — Project Definition
+
+## Objective
+
+Define the project scope and establish a structured Business Intelligence workflow.
+
+## Activities
+
+* Defined the business problem.
+* Selected Customer Intelligence as the main project objective.
+* Created the GitHub repository.
+* Organized the project structure.
+* Defined the initial documentation.
+* Identified available datasets.
+
+## Deliverables
+
+* GitHub repository
+* README
+* Data Dictionary
+* Business Questions
+
+---
+
+# Sprint 2 — Data Understanding
+
+## Objective
+
+Understand the available sales data and prepare the first analytical dataset.
+
+## Activities
+
+* Extracted product sales from the transactional database.
+* Identified dataset granularity.
+* Confirmed that each row represents one sold product.
+* Validated available customer, product and sales information.
+
+## Main Findings
+
+* The sales table contains approximately 24,000 product sales records.
+* One sales transaction may contain multiple products.
+
+---
+
+# Sprint 3 — Exploratory Analysis
+
+## Objective
+
+Perform the first customer analyses.
+
+## Activities
+
+* Calculated revenue by customer.
+* Calculated profit by customer.
+* Calculated purchase frequency.
+* Calculated customer recency.
+* Identified inactive customers.
+* Compared revenue and profitability rankings.
+
+## Main Findings
+
+* Initial analyses were affected by duplicate customer registrations.
+* Customer ranking changed after customer consolidation.
+
+---
+
+# Sprint 4 — Data Preparation
+
+## Objective
+
+Improve data quality and create the analytical foundation for customer segmentation.
+
+## Activities
+
+* Consolidated duplicate customer registrations.
+* Changed analytical customer identification from Customer ID to Customer Name + CPF/CNPJ.
+* Created macro Product Groups from detailed product subgroups.
+* Built the Customer Master Table.
+
+## Deliverables
+
+Customer Master Table containing:
+
+* Revenue
+* Profit
+* Sales Quantity
+* Items Quantity
+* Distinct Products
+* Distinct Product Subgroups
+* Distinct Product Groups
+* Average Ticket
+* Last Purchase
+* Days Since Last Purchase
+
+## Main Findings
+
+* Customer consolidation significantly improved analytical accuracy.
+* Product hierarchy simplified future commercial analyses.
+
+---
+
+# Current Status
+
+## Completed
+
+* Business Understanding
+* Data Extraction
+* Data Cleaning
+* Feature Engineering
+* Customer Master Table
+
+## In Progress
+
+* Customer Profiling
+* Customer Segmentation
+* Exploratory Business Analysis
+
+## Planned
+
+* Power BI Dashboard
+* Business Recommendations
+* Executive Report
+* Predictive Models
