@@ -6,9 +6,17 @@ This document describes the business and analytical rules adopted throughout the
 
 # 1. Project Scope
 
-The current version of the project analyzes **product sales only**.
+The current version of the project analyzes **completed product sales only**.
 
-Service operations (mechanics, welding, lathe services and freight) are excluded from the Customer Intelligence analysis to maintain a well-defined project scope.
+Only finalized sales are considered for all analytical views.
+
+Open sales are excluded using the following business rule:
+
+```sql
+mv_vendas.em_aberto = 1
+```
+
+Service operations (mechanics, welding, lathe services and freight) are intentionally excluded from the current version of the Customer Intelligence analysis in order to maintain a well-defined project scope.
 
 ---
 
@@ -72,7 +80,25 @@ These transactions may still be considered in future product or sales performanc
 
 ---
 
-# 6. Revenue Calculation
+# 6. Sales Status
+
+Only completed sales are included in this project.
+
+The operational sales table (`mv_vendas`) contains the field `em_aberto`, which indicates whether a sales transaction has been finalized.
+
+Business Rule:
+
+* Include only records where `em_aberto = 1`.
+
+### Reason
+
+Open sales do not represent completed commercial transactions and therefore should not influence customer behavior analyses, profitability calculations or commercial performance indicators.
+
+This filter is applied directly in the analytical base view (`vw_sales_enriched`) to guarantee consistency across all subsequent analytical views.
+
+---
+
+# 7. Revenue Calculation
 
 Revenue is calculated as:
 
@@ -80,7 +106,7 @@ Revenue = Unit Sale Price × Quantity
 
 ---
 
-# 7. Profit Calculation
+# 8. Profit Calculation
 
 Profit is calculated as:
 
@@ -88,7 +114,7 @@ Profit = (Unit Sale Price − Unit Cost) × Quantity
 
 ---
 
-# 8. Sales Quantity
+# 9. Sales Quantity
 
 Sales Quantity represents the number of **distinct sales transactions**, not the number of sold items.
 
@@ -100,7 +126,7 @@ This prevents multiple products belonging to the same sale from being counted as
 
 ---
 
-# 9. Customer Master Table
+# 10. Customer Master Table
 
 The Customer Master Table is the primary analytical dataset of the project.
 
@@ -123,7 +149,7 @@ Additional metrics may be incorporated during future project iterations.
 
 ---
 
-# 10. Product Hierarchy
+# 11. Product Hierarchy
 
 The original product classification provided by the ERP system was considered too granular for strategic analysis.
 
@@ -142,7 +168,7 @@ This hierarchy is used exclusively for analytical purposes and does not modify t
 
 ---
 
-# 11. Product Diversity
+# 12. Product Diversity
 
 Customer product diversity is measured using three different indicators:
 
@@ -154,7 +180,7 @@ These metrics allow the evaluation of customer purchasing breadth and support fu
 
 ---
 
-# 12. Business-Oriented Analysis
+# 13. Business-Oriented Analysis
 
 The project prioritizes answering business questions before developing dashboards.
 
@@ -174,3 +200,12 @@ This approach ensures that the project focuses on generating business value rath
 # Future Rules
 
 This document will be continuously updated as new business rules and analytical decisions emerge throughout the project.
+
+
+## Guiding Principle
+
+Business rules are applied as early as possible in the analytical pipeline.
+
+Whenever feasible, data cleaning, filtering and business logic are implemented in the base analytical view (`vw_sales_enriched`) so that all subsequent analyses inherit the same validated dataset.
+
+This approach improves consistency, reduces duplicated logic and minimizes the risk of contradictory business results.
