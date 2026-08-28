@@ -18,13 +18,17 @@ Define the project scope and establish a structured Business Intelligence workfl
 * Organized the project structure.
 * Defined the initial documentation.
 * Identified available datasets.
+* Defined the initial business questions.
 
 ## Deliverables
 
 * GitHub repository
 * README
+* Project Scope
 * Data Dictionary
 * Business Questions
+* Business Rules
+* Project Journal
 
 ---
 
@@ -40,11 +44,16 @@ Understand the available sales data and prepare the first analytical dataset.
 * Identified dataset granularity.
 * Confirmed that each row represents one sold product.
 * Validated available customer, product and sales information.
+* Investigated relationships between sales, customers, products and product subgroups.
+* Identified limitations in the available historical data.
 
 ## Main Findings
 
-* The sales table contains approximately 24,000 product sales records.
+* The sales dataset contains approximately 24,000 product-level records.
 * One sales transaction may contain multiple products.
+* Counting transaction rows does not represent the actual number of sales; sales must be counted using distinct sale controls.
+* The current ERP contains transaction history only from August 2024 onward due to a previous system migration.
+* Customers whose first recorded transaction occurs during the analyzed period cannot necessarily be classified as new customers.
 
 ---
 
@@ -52,7 +61,7 @@ Understand the available sales data and prepare the first analytical dataset.
 
 ## Objective
 
-Perform the first customer analyses.
+Perform the first customer analyses and identify relevant customer-level metrics.
 
 ## Activities
 
@@ -60,48 +69,289 @@ Perform the first customer analyses.
 * Calculated profit by customer.
 * Calculated purchase frequency.
 * Calculated customer recency.
-* Identified inactive customers.
+* Identified customers with long periods without purchases.
 * Compared revenue and profitability rankings.
+* Investigated differences between customer registration IDs and actual customers.
 
 ## Main Findings
 
 * Initial analyses were affected by duplicate customer registrations.
-* Customer ranking changed after customer consolidation.
+* The same customer could exist under multiple ERP registration IDs.
+* Customer rankings changed after customer consolidation.
+* Data quality was identified as a critical requirement before performing customer segmentation.
 
 ---
 
-# Sprint 4 — Data Preparation
+# Sprint 4 — Data Preparation and Analytical Layer
 
 ## Objective
 
-Improve data quality and create the analytical foundation for customer segmentation.
+Improve data quality and create a reusable analytical foundation for customer analysis and segmentation.
 
 ## Activities
 
 * Consolidated duplicate customer registrations.
 * Changed analytical customer identification from Customer ID to Customer Name + CPF/CNPJ.
-* Created macro Product Groups from detailed product subgroups.
-* Built the Customer Master Table.
+* Created a standardized customer key.
+* Investigated duplicate product subgroup registrations.
+* Reorganized detailed ERP product subgroups into broader Product Groups.
+* Created a Product Group mapping dimension.
+* Created a product-level override mechanism for products requiring manual classification.
+* Created the `vw_sales_enriched` analytical view.
+* Created the `vw_customer_master` customer-level analytical view.
+* Validated SQL results against the previous Excel-based Customer Master analysis.
+* Corrected the Distinct Product Subcategories metric to represent business categories rather than duplicated technical ERP IDs.
 
 ## Deliverables
 
-Customer Master Table containing:
+### `vw_sales_enriched`
+
+Analytical sales-level view containing:
+
+* Customer identification
+* Sale information
+* Product information
+* Product subgroup
+* Product group
+* Quantity
+* Revenue
+* Cost
+* Profit
+
+### `vw_customer_master`
+
+Customer-level analytical view containing:
 
 * Revenue
 * Profit
+* Profit Margin
 * Sales Quantity
 * Items Quantity
 * Distinct Products
-* Distinct Product Subgroups
+* Distinct Product Subcategories
 * Distinct Product Groups
 * Average Ticket
+* Average Items per Sale
+* Average Revenue per Item
+* Average Profit per Sale
+* Average Profit per Item
 * Last Purchase
 * Days Since Last Purchase
 
 ## Main Findings
 
 * Customer consolidation significantly improved analytical accuracy.
-* Product hierarchy simplified future commercial analyses.
+* ERP technical identifiers do not always represent unique business entities.
+* Product hierarchy significantly simplified commercial analysis.
+* Analytical views provide a more reliable and reusable foundation than repeatedly querying operational ERP tables.
+* Business definitions must be validated before building dashboards or segmentation models.
+
+---
+
+# Sprint 5 — Customer Exploratory Data Analysis
+
+## Objective
+
+Understand customer behavior, value concentration, purchase frequency, recency, profitability and average ticket before defining customer segmentation rules.
+
+## Activities
+
+* Analyzed the distribution of customer revenue.
+* Analyzed purchase frequency.
+* Analyzed customer recency.
+* Analyzed average ticket.
+* Performed Pareto analysis of customer revenue.
+* Compared revenue concentration with profit concentration.
+* Analyzed profitability among high-revenue customers.
+* Investigated one-purchase and low-frequency customers.
+* Cross-analyzed Recency and Frequency.
+* Identified historically frequent customers with high current recency.
+* Analyzed Average Ticket by customer behavior.
+* Compared Product Groups by revenue, ticket and profitability.
+* Investigated the relationship between low frequency and high-value implement purchases.
+* Identified potential customer reactivation opportunities.
+* Identified a potential post-sale cross-selling hypothesis.
+
+## Dataset Profile
+
+The analyzed customer base contains:
+
+* 1,953 customers
+* Minimum customer revenue: R$0.50
+* Maximum customer revenue: approximately R$227,430
+* Average customer revenue: approximately R$3,643
+* Minimum purchase frequency: 1
+* Maximum purchase frequency: 498
+* Average purchase frequency: approximately 9.7
+* Minimum recency: 1 day
+* Maximum recency: 706 days
+* Average recency: approximately 246 days
+* Overall average ticket: approximately R$590
+
+## Main Findings
+
+### Customer Value Concentration
+
+* The top 20 customers account for approximately 21% of total revenue.
+* Approximately 80% of total revenue is generated by 334 customers, representing about 17% of the customer base.
+* Customers generating R$10,000 or more account for nearly 70% of total revenue.
+
+### Revenue vs Profit
+
+* The top 334 customers by revenue generate approximately 80% of revenue and 75.15% of total profit.
+* The top 391 customers by profit generate 80% of total profit and 82.47% of total revenue.
+* Revenue and profit are strongly related but are not equivalent measures of customer value.
+* Most high-revenue customers maintain healthy profit margins.
+* Revenue was therefore retained as the future RFM Monetary metric, while Profit and Profit Margin will be used as complementary customer-value indicators.
+
+### Purchase Frequency
+
+* 627 customers, approximately 32% of the customer base, recorded only one purchase during the available period.
+* These customers account for approximately 7% of total revenue.
+* Customers with four or more purchases generate approximately 85% of total revenue.
+* Customers with more than 21 purchases generate nearly 50% of total revenue.
+* Purchase frequency is strongly associated with customer economic value.
+
+### Recency
+
+* Customers purchasing within the last 90 days represent approximately 30% of the customer base but generate more than 61% of historical revenue.
+* Customers purchasing within the last 30 days represent approximately 14.4% of customers and 40.4% of revenue.
+* 573 customers, approximately 29.3% of the customer base, have more than 365 days of recency and account for approximately 10.1% of historical revenue.
+* Recency is an important customer-value indicator but should not be interpreted independently from historical frequency and product behavior.
+
+### Reactivation Opportunities
+
+* 79 customers with more than 365 days of recency had previously completed at least four purchases during the analyzed period.
+* These customers generated approximately R$198,000 in historical revenue and R$79,000 in profit.
+* Their average historical frequency was approximately 7.9 purchases.
+* Previously frequent customers with high current recency represent stronger reactivation candidates than customers selected using recency alone.
+
+### Low-Frequency / High-Value Customers
+
+* 36 customers with three or fewer purchases generated approximately R$573,000 in revenue.
+* Most high-value, low-frequency customers purchased implements.
+* Low purchase frequency may therefore reflect long product replacement cycles rather than customer disengagement.
+
+### Average Ticket
+
+* The overall average ticket of approximately R$590 hides substantially different customer purchasing patterns.
+* Customers with average tickets of R$10,000 or more averaged approximately 1.5 purchases.
+* Customers with average tickets between R$500 and R$999 averaged approximately 14.3 purchases.
+* High ticket does not necessarily indicate high customer engagement or purchase frequency.
+
+### Product Behavior
+
+Product Groups demonstrate substantially different economic behaviors.
+
+For example:
+
+* Parts generated approximately R$3.59 million in revenue with an average group ticket of approximately R$218 and a profit margin of approximately 44.9%.
+* Implements generated approximately R$2.01 million in revenue with an average group ticket of approximately R$14,183 and a profit margin of approximately 18.7%.
+
+These differences demonstrate that customer Recency, Frequency and Average Ticket must be interpreted within the context of the products purchased.
+
+## Business Hypothesis Identified
+
+Implement buyers may represent post-sale cross-selling opportunities for recurring categories such as:
+
+* Parts
+* Lubricants
+* Related recurring products
+
+Future analysis should determine whether implement buyers subsequently purchase these categories and identify customers whose recurring-product potential is not currently being captured.
+
+## Analytical Decision
+
+The initial plan was to use a traditional RFM model:
+
+`Recency + Frequency + Monetary`
+
+Customer EDA demonstrated that RFM remains useful but requires additional business context.
+
+The future customer segmentation approach will therefore consider:
+
+`RFM + Profitability + Product Behavior`
+
+Revenue will remain the Monetary component, while Profit, Profit Margin, Average Ticket and Product Mix will provide complementary information for customer profiling and commercial prioritization.
+
+## Sprint Status
+
+**Completed**
+
+---
+
+# Sprint 6 — Customer Profiling and Segmentation
+
+## Objective
+
+Transform the findings from Customer EDA into customer-level features and actionable customer segments.
+
+## Planned Activities
+
+* Define the attributes required in `vw_customer_profile`.
+* Define RFM scoring rules based on observed customer distributions.
+* Create Recency, Frequency and Monetary scores.
+* Incorporate profitability indicators.
+* Incorporate relevant Product Behavior attributes.
+* Define customer segments.
+* Validate whether resulting segments are commercially meaningful.
+* Identify priority groups for retention, reactivation and development.
+
+## Planned Deliverables
+
+* `vw_customer_profile`
+* RFM scoring logic
+* Customer segmentation rules
+* Customer segment validation
+* Updated Business Rules documentation
+
+---
+
+# Future Analysis — Product and Customer Behavior
+
+## Planned Activities
+
+* Analyze customer purchasing behavior by Product Group.
+* Investigate post-sale purchases among implement buyers.
+* Measure cross-category purchasing behavior.
+* Identify potential cross-selling opportunities.
+* Investigate recurring-product purchasing cycles.
+* Refine inactivity interpretation by Product Group.
+
+---
+
+# Future Phase — Power BI and Operational Integration
+
+## Objective
+
+Transform the analytical model into a continuously updated Business Intelligence solution.
+
+## Planned Activities
+
+* Connect the analytical model to the operational ERP database.
+* Replace snapshot-specific logic with dynamic date calculations where appropriate.
+* Configure automated data refresh.
+* Build the Power BI data model.
+* Create customer and commercial dashboards.
+* Create actionable customer lists.
+* Monitor data quality and unclassified products.
+* Validate dashboard metrics against the SQL analytical layer.
+
+## Potential Dashboard Outputs
+
+* Customer Portfolio Overview
+* High-Value Customers
+* High-Value Customers at Risk
+* Customers to Reactivate
+* Customer Segments
+* Product Mix by Customer
+* Revenue and Profit Concentration
+* Cross-Selling Opportunities
+* Data Quality Monitoring
+
+## Long-Term Goal
+
+Evolve the project from a static portfolio analysis into a continuously updated Customer Intelligence solution capable of supporting commercial decision-making.
 
 ---
 
@@ -110,20 +360,33 @@ Customer Master Table containing:
 ## Completed
 
 * Business Understanding
-* Data Extraction
-* Data Cleaning
-* Feature Engineering
-* Customer Master Table
+* Data Understanding
+* Initial Data Extraction
+* Data Cleaning and Validation
+* Product Classification
+* Analytical Sales View
+* Customer Master View
+* Customer EDA
+* Business Insight Documentation
 
-## In Progress
+## Next
 
-* Customer Profiling
+* Customer Profile
+* RFM Scoring
 * Customer Segmentation
-* Exploratory Business Analysis
 
 ## Planned
 
+* Product and Customer Behavior Analysis
 * Power BI Dashboard
+* Operational Database Integration
+* Automated Refresh
 * Business Recommendations
 * Executive Report
-* Predictive Models
+
+## Future Opportunities
+
+* Cross-Selling Analysis
+* Customer Lifetime Value
+* Customer Reactivation Monitoring
+* Predictive Customer Models
