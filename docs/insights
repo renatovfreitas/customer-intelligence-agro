@@ -1,362 +1,593 @@
-# Business Insights
+Business Insights
 
-This document records the most relevant business insights discovered during the project.
+This document records the most relevant business insights discovered
+during the project.
 
 Insights are continuously updated as new analyses are completed.
 
----
+------------------------------------------------------------------------
 
-# Insight 001 — Customer Consolidation
+Insight 001 — Customer Consolidation
 
-## Finding
+Finding
 
-Several customers were registered multiple times in the operational system.
+Several customers were registered multiple times in the operational
+system.
 
-## Business Impact
+Business Impact
 
-Using the customer registration ID fragmented customer purchasing history and produced inaccurate customer-level metrics and rankings.
+Using the customer registration ID fragmented customer purchasing
+history and produced inaccurate customer-level metrics and rankings.
 
-## Action
+Action
 
-Customers were consolidated using standardized Customer Name and CPF/CNPJ rather than the ERP customer registration ID.
+Customers were consolidated using standardized Customer Name and
+CPF/CNPJ rather than the ERP customer registration ID.
 
----
+------------------------------------------------------------------------
 
-# Insight 002 — Revenue and Profit Ranking
+Insight 002 — Revenue and Profit Ranking
 
-## Finding
+Finding
 
-After customer consolidation, the highest revenue customer was also identified as the highest profit customer.
+After customer consolidation, the highest revenue customer was also
+identified as the highest profit customer.
 
-## Business Impact
+Business Impact
 
-The initial analysis produced different conclusions because duplicate customer registrations split customer purchasing histories.
+The initial analysis produced different conclusions because duplicate
+customer registrations split customer purchasing histories.
 
-This demonstrated that customer-level profitability analysis depends directly on reliable customer identification.
+This demonstrated that customer-level profitability analysis depends
+directly on reliable customer identification.
 
----
+------------------------------------------------------------------------
 
-# Insight 003 — Purchase Frequency and Customer Value
+Insight 003 — Purchase Frequency and Customer Value
 
-## Finding
+Finding
 
 Purchase frequency is strongly associated with customer economic value.
 
 During the analyzed period:
 
-- 627 customers (approximately 32% of the customer base) recorded only one purchase.
-- These customers generated approximately 7% of total revenue.
-- Customers with four or more purchases generated approximately 85% of total revenue.
-- Customers with more than 21 purchases generated nearly 50% of total revenue.
+-   627 customers (approximately 32% of the customer base) recorded only
+    one purchase.
+-   These customers generated approximately 7% of total revenue.
+-   Customers with four or more purchases generated approximately 85% of
+    total revenue.
+-   Customers with more than 21 purchases generated nearly 50% of total
+    revenue.
 
-However, some highly frequent customers generate considerably less profit than other customers with similar purchase frequency.
+However, some highly frequent customers generate considerably less
+profit than other customers with similar purchase frequency.
 
-## Business Impact
+Business Impact
 
-Purchase frequency is an important indicator of customer value, but frequency alone does not provide a complete picture of customer profitability.
+Purchase frequency is an important indicator of customer value, but
+frequency alone does not provide a complete picture of customer
+profitability.
 
-Because transaction history before August 2024 is unavailable due to ERP migration, customers with one recorded purchase cannot necessarily be classified as first-time customers.
+Because transaction history before August 2024 is unavailable due to ERP
+migration, customers with one recorded purchase cannot necessarily be
+classified as first-time customers.
 
-## Recommendation
+Recommendation
 
 Frequency should be evaluated together with:
 
-- Revenue
-- Profit
-- Profit margin
-- Recency
-- Product mix
+-   Revenue
+-   Profit
+-   Profit margin
+-   Recency
+-   Product mix
 
----
+------------------------------------------------------------------------
 
-# Insight 004 — Product Classification
+Insight 004 — Product Classification
 
-## Finding
+Finding
 
-The original ERP product classification was too detailed for strategic analysis and contained duplicated or inconsistent product subgroup registrations.
+The original ERP product classification was too detailed for strategic
+analysis and contained duplicated or inconsistent product subgroup
+registrations.
 
-## Business Impact
+Business Impact
 
-Commercial analyses became difficult to interpret, and counting technical subgroup IDs could overstate the number of distinct business categories purchased by a customer.
+Commercial analyses became difficult to interpret, and counting
+technical subgroup IDs could overstate the number of distinct business
+categories purchased by a customer.
 
-## Action
+Action
 
 Original product subgroups were reorganized into broader Product Groups.
 
-Business-level category metrics use normalized subgroup names where appropriate rather than relying exclusively on ERP technical IDs.
+Business-level category metrics use normalized subgroup names where
+appropriate rather than relying exclusively on ERP technical IDs.
 
----
+------------------------------------------------------------------------
 
-# Insight 005 — Data Quality
+Insight 005 — Data Quality
 
-## Finding
+Finding
 
-Customer and product registration quality has a direct impact on analytical results.
+Customer and product registration quality has a direct impact on
+analytical results.
 
 Examples identified during the project include:
 
-- Duplicate customer registrations
-- Duplicate product subgroup registrations
-- Products without an analytical Product Group classification
+-   Duplicate customer registrations
+-   Duplicate product subgroup registrations
+-   Products without an analytical Product Group classification
 
-## Business Impact
+Business Impact
 
 Data quality problems may produce inaccurate:
 
-- Revenue rankings
-- Profit rankings
-- Customer segmentation
-- Product diversity metrics
-- Inactivity analysis
-- Product-level analysis
+-   Revenue rankings
+-   Profit rankings
+-   Customer segmentation
+-   Product diversity metrics
+-   Inactivity analysis
+-   Product-level analysis
 
-## Recommendation
+Recommendation
 
-Customer and product registration quality should be continuously monitored.
+Customer and product registration quality should be continuously
+monitored.
 
-Unclassified products should also be monitored as a data quality KPI as new products are added to the ERP.
+Unclassified products should also be monitored as a data quality KPI as
+new products are added to the ERP.
 
----
+------------------------------------------------------------------------
 
-# Insight 006 — Revenue Concentration
+Insight 006 — Revenue Concentration
 
-## Finding
+Finding
 
-Customer revenue is highly concentrated within a relatively small portion of the customer base.
+Customer revenue is highly concentrated within a relatively small
+portion of the customer base.
 
-- The top 20 customers account for approximately 21% of total revenue.
-- Approximately 80% of total revenue is generated by 334 customers, representing about 17% of the 1,953 analyzed customers.
-- Customers generating R$10,000 or more individually account for nearly 70% of total revenue.
+-   The top 20 customers account for approximately 21% of total revenue.
+-   Approximately 80% of total revenue is generated by 334 customers,
+    representing about 17% of the 1,953 analyzed customers.
+-   Customers generating R$10,000 or more individually account for
+    nearly 70% of total revenue.
 
-## Business Impact
+Business Impact
 
-A relatively small group of customers has a disproportionate impact on company revenue.
+A relatively small group of customers has a disproportionate impact on
+company revenue.
 
-However, the top 20 customers account for only 21% of revenue, indicating that revenue concentration extends across a broader group of valuable customers rather than depending exclusively on a few major accounts.
+However, the top 20 customers account for only 21% of revenue,
+indicating that revenue concentration extends across a broader group of
+valuable customers rather than depending exclusively on a few major
+accounts.
 
-## Recommendation
+Recommendation
 
-Customer retention and relationship strategies should prioritize high-value customers while also identifying customers with the potential to move into higher-value segments.
+Customer retention and relationship strategies should prioritize
+high-value customers while also identifying customers with the potential
+to move into higher-value segments.
 
----
+------------------------------------------------------------------------
 
-# Insight 007 — Revenue Does Not Fully Represent Customer Value
+Insight 007 — Revenue Does Not Fully Represent Customer Value
 
-## Finding
+Finding
 
-Revenue and profit are strongly related, but high revenue does not always translate proportionally into high profit.
+Revenue and profit are strongly related, but high revenue does not
+always translate proportionally into high profit.
 
-The top 334 customers by revenue account for approximately 80% of total revenue but generate 75.15% of total profit.
+The top 334 customers by revenue account for approximately 80% of total
+revenue but generate 75.15% of total profit.
 
-Conversely, the top 391 customers by profit generate 80% of total profit and account for 82.47% of total revenue.
+Conversely, the top 391 customers by profit generate 80% of total profit
+and account for 82.47% of total revenue.
 
 Among the 202 customers generating at least R$10,000 in revenue:
 
-- 120 (59.4%) have profit margins of 25% or higher.
-- Approximately 79% have margins of at least 20%.
-- Only 14 customers have margins below 15%.
-- Only two customers have margins below 10%.
+-   120 (59.4%) have profit margins of 25% or higher.
+-   Approximately 79% have margins of at least 20%.
+-   Only 14 customers have margins below 15%.
+-   Only two customers have margins below 10%.
 
-## Business Impact
+Business Impact
 
-Revenue provides a strong indication of customer economic value, but differences in profitability remain relevant when prioritizing customers.
+Revenue provides a strong indication of customer economic value, but
+differences in profitability remain relevant when prioritizing
+customers.
 
-Most high-revenue customers also demonstrate healthy profitability, suggesting that low-margin high-revenue customers are the exception rather than the dominant pattern.
+Most high-revenue customers also demonstrate healthy profitability,
+suggesting that low-margin high-revenue customers are the exception
+rather than the dominant pattern.
 
-## Recommendation
+Recommendation
 
 Revenue should be used as the Monetary component of the RFM model.
 
-Profit and Profit Margin should remain complementary customer-value measures and should be used to refine commercial prioritization.
+Profit and Profit Margin should remain complementary customer-value
+measures and should be used to refine commercial prioritization.
 
----
+------------------------------------------------------------------------
 
-# Insight 008 — Recency and Revenue Concentration
+Insight 008 — Recency and Revenue Concentration
 
-## Finding
+Finding
 
-Recent customers account for a disproportionate share of historical revenue.
+Recent customers account for a disproportionate share of historical
+revenue.
 
-Customers purchasing within the last 90 days represent approximately 30% of the customer base but account for more than 61% of total revenue.
+Customers purchasing within the last 90 days represent approximately 30%
+of the customer base but account for more than 61% of total revenue.
 
-Customers purchasing within the last 30 days alone represent approximately 14.4% of customers and 40.4% of revenue.
+Customers purchasing within the last 30 days alone represent
+approximately 14.4% of customers and 40.4% of revenue.
 
-In contrast, 573 customers (29.3% of the customer base) have not purchased for more than 365 days and account for approximately 10.1% of historical revenue.
+In contrast, 573 customers (29.3% of the customer base) have not
+purchased for more than 365 days and account for approximately 10.1% of
+historical revenue.
 
-## Business Impact
+Business Impact
 
-Recency is strongly associated with customer economic activity and represents an important dimension for customer segmentation.
+Recency is strongly associated with customer economic activity and
+represents an important dimension for customer segmentation.
 
-However, high recency should not automatically be interpreted as customer churn because expected purchasing cycles differ substantially between product categories.
+However, high recency should not automatically be interpreted as
+customer churn because expected purchasing cycles differ substantially
+between product categories.
 
-## Recommendation
+Recommendation
 
-Recency should be incorporated into customer segmentation but interpreted together with historical frequency, customer value and product mix.
+Recency should be incorporated into customer segmentation but
+interpreted together with historical frequency, customer value and
+product mix.
 
----
+------------------------------------------------------------------------
 
-# Insight 009 — Reactivation Opportunities
+Insight 009 — Reactivation Opportunities
 
-## Finding
+Finding
 
 Not all customers with high recency have historically low engagement.
 
-Among customers with more than 365 days since their last recorded purchase, 79 customers had previously completed at least four purchases during the analyzed period.
+Among customers with more than 365 days since their last recorded
+purchase, 79 customers had previously completed at least four purchases
+during the analyzed period.
 
-This group generated approximately R$198,000 in historical revenue and R$79,000 in profit, with an average of approximately 7.9 purchases per customer.
+This group generated approximately R$198,000 in historical revenue and
+R$79,000 in profit, with an average of approximately 7.9 purchases per
+customer.
 
-## Business Impact
+Business Impact
 
-Treating all inactive customers equally would overlook meaningful differences in their previous relationship with the company.
+Treating all inactive customers equally would overlook meaningful
+differences in their previous relationship with the company.
 
-Previously frequent customers who have stopped purchasing may represent stronger reactivation opportunities than customers with only one historical transaction.
+Previously frequent customers who have stopped purchasing may represent
+stronger reactivation opportunities than customers with only one
+historical transaction.
 
-## Recommendation
+Recommendation
 
-Future reactivation strategies should prioritize customers based on a combination of:
+Future reactivation strategies should prioritize customers based on a
+combination of:
 
-- Recency
-- Historical frequency
-- Revenue
-- Profit
-- Product mix
+-   Recency
+-   Historical frequency
+-   Revenue
+-   Profit
+-   Product mix
 
-A dedicated "Customers to Reactivate" segment or dashboard view should be considered.
+A dedicated “Customers to Reactivate” segment or dashboard view should
+be considered.
 
----
+------------------------------------------------------------------------
 
-# Insight 010 — Low Frequency Does Not Necessarily Mean Low Customer Value
+Insight 010 — Low Frequency Does Not Necessarily Mean Low Customer Value
 
-## Finding
+Finding
 
 Some low-frequency customers generated substantial revenue.
 
-Thirty-six customers with three or fewer purchases generated approximately R$573,000 in revenue.
+Thirty-six customers with three or fewer purchases generated
+approximately R$573,000 in revenue.
 
-Most of the high-value, low-frequency customers purchased implements. Among the high-value customers with only one recorded purchase, the large majority purchased implements.
+Most of the high-value, low-frequency customers purchased implements.
+Among the high-value customers with only one recorded purchase, the
+large majority purchased implements.
 
-## Business Impact
+Business Impact
 
-Low purchase frequency may reflect the naturally longer replacement cycle of certain products rather than weak customer engagement.
+Low purchase frequency may reflect the naturally longer replacement
+cycle of certain products rather than weak customer engagement.
 
-A customer purchasing an implement may reasonably remain without another similar purchase for a long period, while the same behavior from a customer historically purchasing parts or lubricants may indicate a more meaningful change in purchasing behavior.
+A customer purchasing an implement may reasonably remain without another
+similar purchase for a long period, while the same behavior from a
+customer historically purchasing parts or lubricants may indicate a more
+meaningful change in purchasing behavior.
 
-## Recommendation
+Recommendation
 
-Recency and frequency should not be interpreted independently from product behavior.
+Recency and frequency should not be interpreted independently from
+product behavior.
 
-Low-frequency customers purchasing recurring categories such as parts and lubricants may represent stronger reactivation opportunities than customers whose historical value comes primarily from implements.
+Low-frequency customers purchasing recurring categories such as parts
+and lubricants may represent stronger reactivation opportunities than
+customers whose historical value comes primarily from implements.
 
----
+------------------------------------------------------------------------
 
-# Insight 011 — Average Ticket Varies Significantly by Customer Behavior
+Insight 011 — Average Ticket Varies Significantly by Customer Behavior
 
-## Finding
+Finding
 
-The overall average ticket is approximately R$590, but this value hides substantial differences across customers.
+The overall average ticket is approximately R$590, but this value hides
+substantial differences across customers.
 
-Customers with very high average tickets tend to purchase less frequently, while customers with moderate tickets often demonstrate considerably higher purchase frequency.
+Customers with very high average tickets tend to purchase less
+frequently, while customers with moderate tickets often demonstrate
+considerably higher purchase frequency.
 
 For example:
 
-- Customers with average tickets of R$10,000 or more averaged approximately 1.5 purchases.
-- Customers with average tickets between R$500 and R$999 averaged approximately 14.3 purchases.
+-   Customers with average tickets of R$10,000 or more averaged
+    approximately 1.5 purchases.
+-   Customers with average tickets between R$500 and R$999 averaged
+    approximately 14.3 purchases.
 
-## Business Impact
+Business Impact
 
-Average ticket alone is not a sufficient indicator of customer quality or engagement.
+Average ticket alone is not a sufficient indicator of customer quality
+or engagement.
 
 The company serves different purchasing profiles, including:
 
-- High-ticket, low-frequency customers
-- Moderate-ticket, high-frequency customers
-- Low-ticket, recurring customers
+-   High-ticket, low-frequency customers
+-   Moderate-ticket, high-frequency customers
+-   Low-ticket, recurring customers
 
-## Recommendation
+Recommendation
 
-Average Ticket should be used as a descriptive customer-profile metric rather than as a primary segmentation variable in isolation.
+Average Ticket should be used as a descriptive customer-profile metric
+rather than as a primary segmentation variable in isolation.
 
----
+------------------------------------------------------------------------
 
-# Insight 012 — Product Groups Have Different Economic Behaviors
+Insight 012 — Product Groups Have Different Economic Behaviors
 
-## Finding
+Finding
 
-Product Groups exhibit substantially different combinations of ticket size, purchase frequency and profitability.
+Product Groups exhibit substantially different combinations of ticket
+size, purchase frequency and profitability.
 
 Two important examples are:
 
-### Parts
+Parts
 
-- Approximately R$3.59 million in revenue
-- Average group ticket of approximately R$218
-- Profit margin of approximately 44.9%
-- High transaction frequency
+-   Approximately R$3.59 million in revenue
+-   Average group ticket of approximately R$218
+-   Profit margin of approximately 44.9%
+-   High transaction frequency
 
-### Implements
+Implements
 
-- Approximately R$2.01 million in revenue
-- Average group ticket of approximately R$14,183
-- Profit margin of approximately 18.7%
-- Low transaction frequency
+-   Approximately R$2.01 million in revenue
+-   Average group ticket of approximately R$14,183
+-   Profit margin of approximately 18.7%
+-   Low transaction frequency
 
-## Business Impact
+Business Impact
 
-The company effectively serves different purchasing cycles within the same customer base.
+The company effectively serves different purchasing cycles within the
+same customer base.
 
-Parts tend to generate recurring, lower-ticket and higher-margin transactions, while implements generate substantially larger but less frequent transactions with lower percentage margins.
+Parts tend to generate recurring, lower-ticket and higher-margin
+transactions, while implements generate substantially larger but less
+frequent transactions with lower percentage margins.
 
-This explains why customer Recency, Frequency and Average Ticket cannot be interpreted without considering what the customer purchases.
+This explains why customer Recency, Frequency and Average Ticket cannot
+be interpreted without considering what the customer purchases.
 
-## Recommendation
+Recommendation
 
 Product behavior should complement the future RFM segmentation.
 
-Customer profiles should identify the customer's predominant or relevant Product Groups so that similar RFM scores can be interpreted differently depending on purchasing behavior.
+Customer profiles should identify the customer’s predominant or relevant
+Product Groups so that similar RFM scores can be interpreted differently
+depending on purchasing behavior.
 
----
+------------------------------------------------------------------------
 
-# Insight 013 — Potential Post-Sale Cross-Selling Opportunity
+Insight 013 — Observed After-Sales Parts Purchasing Among Implement Customers
 
-## Finding
+Finding
 
-Implement buyers exhibit high transaction values but naturally low purchase frequency, while parts and other recurring categories generate more frequent transactions.
+The initial post-sale cross-selling hypothesis was tested using purchase
+sequence rather than simple product co-occurrence.
 
-This creates a potential relationship between high-value equipment sales and subsequent recurring-product purchases.
+During the 12-month analytical window:
 
-## Business Impact
+-   50 customers purchased at least one product classified as
+    IMPLEMENTOS.
+-   25 of these customers (50.0%) recorded at least one subsequent PEÇAS
+    purchase after their first observed implement purchase.
+-   Subsequent parts purchases generated approximately R$51,600.85 in
+    revenue during the available observation period.
 
-The initial implement sale may represent only part of the customer's potential lifetime value.
+An earlier product-mix analysis showed that 35 of the 47 customers whose
+dominant Product Group was IMPLEMENTOS also purchased PEÇAS during the
+same 12-month window (74.47%). However, that measure did not establish
+purchase order. The temporal analysis provides stronger evidence by
+considering only parts purchases occurring after the first observed
+implement purchase.
 
-Customers who purchase implements but do not subsequently purchase parts, lubricants or other related recurring products may represent an opportunity for additional post-sale revenue.
+Business Impact
 
-## Recommendation
+Implement sales can be followed by recurring parts revenue and may
+represent the beginning of a broader after-sales relationship rather
+than an isolated transaction.
 
-A future analysis should investigate:
+At the same time, 25 of the 50 observed implement buyers did not record
+a subsequent parts purchase within the available period. These customers
+may represent potential after-sales opportunities, but they should not
+automatically be classified as missed opportunities because the
+available follow-up period differs according to the date of the
+implement purchase.
 
-- What percentage of implement buyers later purchase parts?
-- What percentage later purchase lubricants or other recurring categories?
-- How long after an implement purchase does the first recurring purchase normally occur?
-- Which implement buyers never return for recurring products?
+Recommendation
 
-This should currently be treated as a business hypothesis rather than a confirmed opportunity.
+After-sales monitoring should distinguish between:
 
----
+-   Implement buyers who subsequently purchase parts.
+-   Implement buyers with no subsequent parts activity.
+-   The amount of time elapsed since the implement purchase.
 
-# Lessons Learned
+Future analysis should measure after-sales conversion using comparable
+follow-up windows such as 90, 180 and 365 days. Lubricants and other
+recurring categories should also be evaluated as the analytical model
+evolves.
 
-This project demonstrated that business understanding and data quality are fundamental before creating dashboards or customer segmentation models.
+------------------------------------------------------------------------
 
-The exploratory analysis showed that customer value cannot be represented by a single metric.
+Insight 014 — Customer Product Behavior Is Highly Concentrated
 
-Revenue, profit, purchase frequency, recency and average ticket provide different perspectives on customer behavior, while Product Group provides essential business context for interpreting those metrics.
+Finding
 
-The analysis also demonstrated that generic segmentation rules may produce misleading conclusions when applied without understanding the company's commercial model. In particular, low frequency or high recency does not necessarily indicate customer disengagement when customers purchase products with naturally long replacement cycles.
+Product behavior among the 1,380 identified customers active during the
+12-month RFM window is highly concentrated.
 
-Based on the Customer EDA, the future segmentation strategy should therefore evolve from a generic RFM model toward an enriched approach:
+-   985 customers (71.38%) generated at least 80% of their revenue from
+    their dominant Product Group.
+-   A further 239 customers (17.32%) generated between 60% and 80% of
+    their revenue from their dominant Product Group.
+-   Combined, 88.70% of active customers generated at least 60% of their
+    revenue from a single dominant Product Group.
+-   PEÇAS was the dominant Product Group for 1,104 customers,
+    representing 80.0% of the active identified customer base.
+-   IMPLEMENTOS was dominant for 47 customers, while TRATORES was
+    dominant for one customer.
 
-**RFM + Profitability + Product Behavior → Customer Segmentation**
+Business Impact
 
-Revenue remains appropriate for the Monetary component of RFM, while Profit, Profit Margin, Average Ticket and Product Mix should provide additional context for commercial prioritization.
+Most active customers have a clearly identifiable purchasing orientation
+rather than a highly diversified product mix.
 
-The most valuable insights in the project were generated during data exploration, validation and business-rule development rather than during visualization itself.
+This provides important context for customer segmentation because
+customers with similar RFM scores may have fundamentally different
+commercial relationships with the company depending on their dominant
+Product Group.
+
+The high concentration in PEÇAS also highlights the importance of
+recurring parts activity in the customer base, while the relatively
+small number of implement- and tractor-dominant customers can still
+represent substantial economic value because of their much higher
+transaction values.
+
+Recommendation
+
+Dominant Product Group and its share of customer revenue should be
+incorporated into the commercial customer profile.
+
+Product concentration should be used as contextual information rather
+than as an isolated measure of customer quality.
+
+------------------------------------------------------------------------
+
+Insight 015 — Similar RFM Profiles Can Represent Different Commercial Behaviors
+
+Finding
+
+The interaction between RFM scores and Product Behavior confirms that
+customer inactivity cannot be interpreted uniformly across Product
+Groups.
+
+Among high-value customers with intermediate recency (R2/R3 and M4/M5):
+
+-   23 IMPLEMENTOS-dominant customers generated approximately R$425.3k
+    in 12-month revenue and R$84.4k in profit, with average frequency of
+    2.83 purchases and average recency of approximately 181 days.
+-   35 PEÇAS-dominant customers generated approximately R$255.1k in
+    12-month revenue and R$97.7k in profit, with average frequency of
+    15.34 purchases and average recency of approximately 165 days.
+
+Despite relatively similar average recency, the two groups show
+substantially different purchasing frequency and profitability patterns.
+
+Business Impact
+
+A customer with high Monetary value, low Frequency and increasing
+Recency may represent normal purchasing behavior when the relationship
+is driven by IMPLEMENTOS.
+
+The same Recency pattern may carry a different commercial meaning for a
+customer whose relationship is dominated by PEÇAS, where purchasing
+behavior is typically more recurrent.
+
+Therefore, generic RFM labels such as “At Risk” can produce misleading
+conclusions when Product Behavior is ignored.
+
+Recommendation
+
+RFM should remain the behavioral foundation of customer segmentation,
+but final commercial segments should incorporate Product Behavior and
+profitability.
+
+Commercial interpretation should distinguish at least between:
+
+-   Recurring customers whose activity is cooling down.
+-   High-value equipment customers with naturally longer purchase
+    cycles.
+-   Equipment customers with an observed after-sales relationship.
+-   Equipment customers with potential after-sales opportunities.
+-   Dormant customers with historically meaningful engagement.
+-   Low-value or occasional customers with lower commercial priority.
+
+------------------------------------------------------------------------
+
+Lessons Learned
+
+This project demonstrated that business understanding and data quality
+are fundamental before creating dashboards or customer segmentation
+models.
+
+The exploratory analysis showed that customer value cannot be
+represented by a single metric.
+
+Revenue, profit, purchase frequency, recency and average ticket provide
+different perspectives on customer behavior, while Product Group
+provides essential business context for interpreting those metrics.
+
+The analysis also demonstrated that generic segmentation rules may
+produce misleading conclusions when applied without understanding the
+company’s commercial model. In particular, low frequency or high recency
+does not necessarily indicate customer disengagement when customers
+purchase products with naturally long replacement cycles.
+
+The Product Behavior analysis strengthened this conclusion. Most active
+customers have a highly concentrated purchasing profile, and PEÇAS
+dominates the relationship for most active customers, while IMPLEMENTOS
+and TRATORES represent much smaller customer populations with
+substantially different purchase cycles and transaction values.
+
+The after-sales analysis also showed that product relationships should
+be evaluated temporally rather than only through co-occurrence. Half of
+the observed implement buyers recorded at least one subsequent parts
+purchase, but differences in follow-up time mean that this should be
+treated as an observed penetration rate rather than a definitive
+conversion rate.
+
+Based on the completed Customer EDA, RFM analysis and Product Behavior
+analysis, the segmentation strategy should evolve toward an enriched
+approach:
+
+RFM + Profitability + Product Behavior + After-Sales Context →
+Commercial Customer Segmentation
+
+Revenue remains appropriate for the Monetary component of RFM, while
+Profit, Profit Margin, Product Mix and purchase-cycle context provide
+additional information for commercial prioritization.
+
+The next analytical step is to translate these validated behavioral
+patterns into Commercial Segments v1 and then evaluate whether those
+segments produce clear and actionable customer lists for the business.
