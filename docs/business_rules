@@ -197,6 +197,148 @@ This approach ensures that the project focuses on generating business value rath
 
 ---
 
+# 14. Current-Behavior Window
+
+RFM Frequency and Monetary use a fixed 12-month window:
+
+**08 July 2025 to 07 July 2026**
+
+```sql
+sale_date >= '2025-07-08'
+AND sale_date < '2026-07-08'
+```
+
+Recency is calculated from the customer's last purchase in the full current
+analytical history so inactive customers remain visible. The snapshot
+reference date is **08 July 2026**.
+
+---
+
+# 15. RFM v1 Scoring
+
+Revenue is the Monetary component. Profit and Profit Margin remain
+complementary customer-value measures.
+
+## Recency
+* R5: 0–30 days
+* R4: 31–90 days
+* R3: 91–180 days
+* R2: 181–365 days
+* R1: more than 365 days
+
+## Frequency — 12 Months
+* F5: 11+ distinct sales
+* F4: 4–10
+* F3: 2–3
+* F2: 1
+* F1: 0
+
+## Monetary — 12 Months
+* M5: R$10,000+
+* M4: R$3,000–9,999.99
+* M3: R$500–2,999.99
+* M2: R$0.01–499.99
+* M1: R$0
+
+These thresholds define RFM v1 and are versioned analytical rules rather
+than permanent universal cutoffs.
+
+---
+
+# 16. Product Behavior
+
+Product Behavior uses the same 12-month window as Frequency and Monetary.
+
+Revenue is aggregated by Customer and Product Group. The dominant Product
+Group is the group generating the highest 12-month revenue for that
+customer. Product-group revenue share is:
+
+`Product Group Revenue / Customer Total 12-Month Revenue`
+
+Product Behavior provides commercial context for RFM and prevents customers
+with different purchasing cycles from being interpreted uniformly.
+
+---
+
+# 17. After-Sales Behavior
+
+After-sales analysis currently focuses on IMPLEMENTOS followed by PEÇAS.
+
+* `first_implement_purchase` is the first observed IMPLEMENTOS purchase in
+  the 12-month analytical window.
+* A subsequent parts purchase must have Product Group = `PECAS` and a sale
+  date strictly later than `first_implement_purchase`.
+* Same-day parts activity is not counted as a subsequent after-sales
+  purchase under the current rule.
+
+Observed parts penetration by available follow-up time:
+
+* <90 days: 18.18%.
+* 90–179 days: 46.67%.
+* 180+ days: 66.67%.
+
+Commercial Segments v1 uses **180 days** as the operational maturity
+threshold for AFTER-SALES OPPORTUNITY. The customer must have purchased
+IMPLEMENTOS, have at least 180 days since the first observed implement
+purchase, and have no subsequent PEÇAS purchase.
+
+This identifies an opportunity for commercial review; it does not prove
+unmet product need or a lost sale.
+
+---
+
+# 18. Commercial Segments v1
+
+`vw_customer_commercial_segment` assigns exactly one segment to each of the
+1,953 identified customers. Rules are evaluated in this precedence order:
+
+1. **AFTER-SALES OPPORTUNITY**
+   * Implement buyer.
+   * 180+ days since first observed implement purchase.
+   * No subsequent PEÇAS purchase.
+
+2. **RECURRING COOLING DOWN**
+   * Dominant Product Group = `PECAS`.
+   * R <= 3 and F >= 4.
+
+3. **HIGH VALUE EQUIPMENT**
+   * Dominant Product Group = `IMPLEMENTOS` or `TRATORES`.
+   * M >= 4.
+
+4. **CORE ACTIVE**
+   * R >= 4, F >= 4 and M >= 3.
+
+5. **HIGH VALUE OCCASIONAL**
+   * M >= 4 and not captured above.
+
+6. **DORMANT HIGH POTENTIAL**
+   * R = 1.
+   * Historical Frequency >= 4 OR Historical Revenue >= R$3,000.
+
+7. **LOW ENGAGEMENT**
+   * Remaining identified customers.
+
+Precedence is part of the rule because a customer may satisfy
+characteristics associated with more than one profile.
+
+`LOW ENGAGEMENT` is descriptive. It must not automatically be interpreted
+as low lifetime value, low commercial priority or a recommendation not to
+contact the customer.
+
+---
+
+# 19. Snapshot vs. Operational Logic
+
+The current project is a fixed analytical snapshot ending on 07 July 2026.
+Date-sensitive rules therefore use 08 July 2026 as the reference date.
+
+When operationalized, snapshot-specific logic should be replaced
+consistently with dynamic dates such as `CURDATE()` where appropriate.
+RFM, after-sales and other time-dependent rules must use the same reference
+date to avoid inconsistent classifications.
+
+---
+
 # Future Rules
 
 This document will be continuously updated as new business rules and analytical decisions emerge throughout the project.
