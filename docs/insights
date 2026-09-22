@@ -443,10 +443,18 @@ After-sales monitoring should distinguish between:
 -   Implement buyers with no subsequent parts activity.
 -   The amount of time elapsed since the implement purchase.
 
-Future analysis should measure after-sales conversion using comparable
-follow-up windows such as 90, 180 and 365 days. Lubricants and other
-recurring categories should also be evaluated as the analytical model
-evolves.
+Follow-up time was subsequently evaluated. Observed parts penetration
+was 18.18% with less than 90 days of observation, 46.67% with 90–179 days
+and 66.67% with 180+ days.
+
+Commercial Segments v1 therefore uses 180 days as an operational maturity
+threshold: implement buyers with at least 180 days since their first
+observed implement purchase and no subsequent parts purchase are classified
+as AFTER-SALES OPPORTUNITY. This is a versioned analytical rule supported
+by the observed pattern, not a proven causal conversion point.
+
+Future analysis should evaluate comparable 90-, 180- and 365-day cohorts
+and extend after-sales analysis to lubricants and other recurring categories.
 
 ------------------------------------------------------------------------
 
@@ -545,6 +553,83 @@ Commercial interpretation should distinguish at least between:
 
 ------------------------------------------------------------------------
 
+Insight 016 — Commercial Segments v1 Creates Distinct Actionable Customer Groups
+
+Finding
+
+RFM, profitability, Product Behavior and after-sales context were combined
+into Commercial Segments v1. All 1,953 identified customers were assigned
+to exactly one mutually exclusive segment.
+
+-   CORE ACTIVE: 307 customers (15.72%), approximately R$1.56 million in
+    12-month revenue and R$624.7k in profit.
+-   HIGH VALUE EQUIPMENT: 38 customers (1.95%), approximately R$1.14
+    million in revenue and R$236.1k in profit.
+-   RECURRING COOLING DOWN: 136 customers (6.96%), approximately R$336.1k
+    in revenue and R$135.0k in profit.
+-   AFTER-SALES OPPORTUNITY: 8 customers (0.41%), approximately R$113.7k
+    in revenue and R$22.0k in profit.
+-   HIGH VALUE OCCASIONAL: 22 customers (1.13%), approximately R$109.9k
+    in revenue and R$40.3k in profit.
+-   DORMANT HIGH POTENTIAL: 113 customers (5.79%), with no current
+    12-month revenue but a meaningful relationship in the available history.
+-   LOW ENGAGEMENT: 1,329 customers (68.05%), approximately R$310.9k in
+    current 12-month revenue.
+
+CORE ACTIVE, HIGH VALUE EQUIPMENT and RECURRING COOLING DOWN together
+represent 481 customers, approximately 24.6% of the portfolio, and about
+85% of identified-customer 12-month revenue.
+
+Business Impact
+
+The segmentation separates recurring healthy customers, high-value
+equipment relationships, recurring customers whose activity is cooling
+down, after-sales opportunities, high-value occasional customers,
+historically meaningful dormant customers and the remaining low-engagement
+base.
+
+HIGH VALUE OCCASIONAL prevents economically relevant but low-frequency
+customers from being absorbed into LOW ENGAGEMENT. LOW ENGAGEMENT is
+intentionally descriptive rather than prescriptive.
+
+Recommendation
+
+Use Commercial Segments v1 as the initial customer-level commercial layer
+for reporting and actionable lists. Preserve the underlying RFM,
+profitability and Product Behavior attributes for explanation and future
+refinement.
+
+------------------------------------------------------------------------
+
+Insight 017 — Mature Implement Buyers Without Subsequent Parts Activity Form a Small, High-Value Opportunity List
+
+Finding
+
+Among 24 implement buyers with at least 180 days since their first observed
+implement purchase, 16 (66.67%) subsequently purchased PEÇAS and eight did
+not.
+
+Those eight customers form the AFTER-SALES OPPORTUNITY segment. Together
+they generated approximately R$113.7k in 12-month revenue, with average
+Monetary value of approximately R$14.2k, average frequency of 1.38 purchases
+and average recency of approximately 239 days.
+
+Business Impact
+
+The result produces a small customer list that can be reviewed individually
+rather than a broad generic cross-selling audience. It also reinforces that
+equipment customers can be economically important despite low transaction
+frequency.
+
+Recommendation
+
+Use these customers as a commercially reviewable after-sales list while
+avoiding the assumption that absence of a subsequent parts purchase proves
+a lost sale. Product need, competitor purchases and other external factors
+are not observed in the dataset.
+
+------------------------------------------------------------------------
+
 Lessons Learned
 
 This project demonstrated that business understanding and data quality
@@ -588,6 +673,8 @@ Revenue remains appropriate for the Monetary component of RFM, while
 Profit, Profit Margin, Product Mix and purchase-cycle context provide
 additional information for commercial prioritization.
 
-The next analytical step is to translate these validated behavioral
-patterns into Commercial Segments v1 and then evaluate whether those
-segments produce clear and actionable customer lists for the business.
+Commercial Segments v1 has now translated these validated behavioral
+patterns into seven mutually exclusive customer groups. The next project
+phase is Historical Data Assessment and Integration using legacy ERP data
+dating back to 2018, with customer-level integration dependent on reliable
+entity resolution.
