@@ -280,47 +280,143 @@ Revenue will remain the Monetary component, while Profit, Profit Margin, Average
 
 ---
 
-# Sprint 6 — Customer Profiling and Segmentation
+# Sprint 6 — Customer Profiling and Commercial Segmentation
 
 ## Objective
 
-Transform the findings from Customer EDA into customer-level features and actionable customer segments.
+Transform the findings from Customer EDA into customer-level behavioral features and commercially meaningful customer segments.
 
-## Planned Activities
+## Activities
 
-* Define the attributes required in `vw_customer_profile`.
-* Define RFM scoring rules based on observed customer distributions.
-* Create Recency, Frequency and Monetary scores.
-* Incorporate profitability indicators.
-* Incorporate relevant Product Behavior attributes.
-* Define customer segments.
-* Validate whether resulting segments are commercially meaningful.
-* Identify priority groups for retention, reactivation and development.
+* Defined the 12-month current-behavior window (08 July 2025 to 07 July 2026).
+* Created `vw_customer_behavior_12m`, `vw_customer_profile_base` and `vw_customer_profile`.
+* Defined and validated RFM v1 scoring rules.
+* Retained Revenue as Monetary and Profitability as complementary customer-value information.
+* Created Product Behavior views and identified each active customer's dominant Product Group.
+* Validated that similar RFM profiles can represent different commercial behaviors by Product Group.
+* Tested after-sales behavior using purchase sequence rather than product co-occurrence.
+* Evaluated parts purchases after implement purchases by elapsed observation time.
+* Defined, tested and validated Commercial Segments v1.
+* Created `vw_customer_commercial_segment`.
+* Confirmed exactly one segment for each of the 1,953 identified customers.
 
-## Planned Deliverables
+## RFM v1
 
+### Recency
+* R5: 0–30 days
+* R4: 31–90 days
+* R3: 91–180 days
+* R2: 181–365 days
+* R1: more than 365 days
+
+### Frequency — 12 months
+* F5: 11+ sales
+* F4: 4–10 sales
+* F3: 2–3 sales
+* F2: 1 sale
+* F1: 0 sales
+
+### Monetary — 12 months
+* M5: R$10,000+
+* M4: R$3,000–9,999.99
+* M3: R$500–2,999.99
+* M2: R$0.01–499.99
+* M1: R$0
+
+## Product Behavior Findings
+
+Among the 1,380 identified customers active in the 12-month window:
+
+* 985 customers generated at least 80% of revenue from one dominant Product Group.
+* 239 additional customers generated between 60% and 80% from one dominant Product Group.
+* 88.70% therefore generated at least 60% of revenue from one dominant Product Group.
+* PEÇAS was dominant for 1,104 customers, IMPLEMENTOS for 47 and TRATORES for one.
+
+Product Behavior proved necessary for interpreting RFM because similar recency can represent a normal equipment purchasing cycle or a meaningful decline in recurring parts activity.
+
+## After-Sales Findings
+
+Fifty identified customers purchased IMPLEMENTOS during the 12-month analytical window. Twenty-five recorded at least one subsequent PEÇAS purchase, generating approximately R$51,600.85 in subsequent parts revenue.
+
+Observed parts penetration increased with available follow-up time:
+
+* <90 days: 2 of 11 customers (18.18%).
+* 90–179 days: 7 of 15 customers (46.67%).
+* 180+ days: 16 of 24 customers (66.67%).
+
+Commercial Segments v1 therefore uses 180 days as an operational maturity threshold for an After-Sales Opportunity. This is a versioned analytical rule supported by the observed pattern, not a proven causal conversion threshold.
+
+## Commercial Segments v1
+
+Rules are evaluated in precedence order:
+
+1. **AFTER-SALES OPPORTUNITY** — Implement buyer with at least 180 days since the first observed implement purchase and no subsequent PEÇAS purchase.
+2. **RECURRING COOLING DOWN** — PEÇAS-dominant customer with R <= 3 and F >= 4.
+3. **HIGH VALUE EQUIPMENT** — IMPLEMENTOS- or TRATORES-dominant customer with M >= 4.
+4. **CORE ACTIVE** — R >= 4, F >= 4 and M >= 3.
+5. **HIGH VALUE OCCASIONAL** — M >= 4 and not captured above.
+6. **DORMANT HIGH POTENTIAL** — R = 1 and historical frequency >= 4 or historical revenue >= R$3,000.
+7. **LOW ENGAGEMENT** — Remaining customer base.
+
+## Segment Validation
+
+| Commercial Segment | Customers | Customer % | Revenue 12m | Profit 12m | Avg. Recency | Avg. Frequency 12m |
+|---|---:|---:|---:|---:|---:|---:|
+| CORE ACTIVE | 307 | 15.72% | R$1,558,485 | R$624,656 | 32.6 | 18.19 |
+| HIGH VALUE EQUIPMENT | 38 | 1.95% | R$1,144,674 | R$236,132 | 77.5 | 11.71 |
+| RECURRING COOLING DOWN | 136 | 6.96% | R$336,072 | R$134,968 | 151.4 | 9.52 |
+| LOW ENGAGEMENT | 1,329 | 68.05% | R$310,936 | R$127,092 | 291.2 | 1.29 |
+| AFTER-SALES OPPORTUNITY | 8 | 0.41% | R$113,742 | R$21,974 | 239.0 | 1.38 |
+| HIGH VALUE OCCASIONAL | 22 | 1.13% | R$109,944 | R$40,295 | 139.7 | 2.82 |
+| DORMANT HIGH POTENTIAL | 113 | 5.79% | R$0 | R$0 | 491.6 | 0.00 |
+
+CORE ACTIVE, HIGH VALUE EQUIPMENT and RECURRING COOLING DOWN together represent 481 customers (approximately 24.6% of the portfolio) and about 85% of identified-customer 12-month revenue.
+
+`LOW ENGAGEMENT` is descriptive, not a recommendation to ignore or deprioritize every customer in the segment.
+
+## Deliverables
+
+* `vw_customer_behavior_12m`
+* `vw_customer_profile_base`
 * `vw_customer_profile`
-* RFM scoring logic
-* Customer segmentation rules
-* Customer segment validation
-* Updated Business Rules documentation
+* `vw_customer_product_group`
+* `vw_customer_product_total`
+* `vw_customer_product_mix`
+* `vw_customer_product_behavior`
+* `vw_customer_first_implement_purchase`
+* `vw_customer_after_sales`
+* `vw_customer_commercial_segment`
+* RFM v1 scoring logic
+* Product Behavior analysis
+* After-sales analysis
+* Commercial Segments v1
+* Updated Business Rules and Business Insights
+
+## Sprint Status
+
+**Completed**
 
 ---
 
-# Future Analysis — Product and Customer Behavior
+# Sprint 7 — Historical Data Assessment and Integration
+
+## Objective
+
+Assess whether legacy ERP data dating back to 2018 can be reliably integrated with the current analytical model and extend the available customer history where sufficient matching confidence exists.
 
 ## Planned Activities
 
-* Analyze customer purchasing behavior by Product Group.
-* Investigate post-sale purchases among implement buyers.
-* Measure cross-category purchasing behavior.
-* Identify potential cross-selling opportunities.
-* Investigate recurring-product purchasing cycles.
-* Refine inactivity interpretation by Product Group.
+* Profile legacy ERP sales and customer data.
+* Evaluate differences between legacy and current customer identifiers.
+* Develop customer entity-resolution rules using attributes available in both systems.
+* Define confidence levels for customer matches.
+* Manually validate ambiguous high-value matches.
+* Determine which historical metrics can be integrated reliably.
+* Preserve aggregate historical analysis where customer-level matching is not sufficiently reliable.
 
 ---
 
-# Future Phase — Power BI and Operational Integration
+# Sprint 9 — Power BI and Operational Integration
 
 ## Objective
 
@@ -367,26 +463,30 @@ Evolve the project from a static portfolio analysis into a continuously updated 
 * Analytical Sales View
 * Customer Master View
 * Customer EDA
+* RFM v1 and Customer Profile
+* Product Behavior Analysis
+* Temporal After-Sales Analysis
+* Commercial Segments v1
+* `vw_customer_commercial_segment`
 * Business Insight Documentation
 
 ## Next
 
-* Customer Profile
-* RFM Scoring
-* Customer Segmentation
+* Sprint 7 — Historical Data Assessment and Integration
 
 ## Planned
 
-* Product and Customer Behavior Analysis
-* Power BI Dashboard
-* Operational Database Integration
+* Sprint 8 — Customer Behavior & Segmentation v2
+* Sprint 9 — Power BI & Operational Integration
 * Automated Refresh
+* Actionable Customer Lists
 * Business Recommendations
 * Executive Report
 
 ## Future Opportunities
 
-* Cross-Selling Analysis
+* Comparable 90/180/365-day after-sales cohorts
+* Lubricants and other recurring-product after-sales analysis
 * Customer Lifetime Value
 * Customer Reactivation Monitoring
 * Predictive Customer Models
