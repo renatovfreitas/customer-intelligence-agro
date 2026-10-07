@@ -678,3 +678,49 @@ patterns into seven mutually exclusive customer groups. The next project
 phase is Historical Data Assessment and Integration using legacy ERP data
 dating back to 2018, with customer-level integration dependent on reliable
 entity resolution.
+
+## Historical ERP Integration Findings
+
+### Strong Customer Continuity Across ERP Migration
+
+Of 2,471 distinct document-identifiable customer identities found among
+legacy buyers, 2,465 also exist in the current ERP.
+
+This represents a 99.76% cross-system document identity match rate,
+indicating very strong customer continuity across the ERP migration.
+
+### Customer Registration Duplication
+
+ERP customer registration IDs cannot reliably represent unique
+customers.
+
+Among the 2,465 legacy identities matched to the current ERP:
+
+- 1,273 map to exactly one current registration.
+- 1,192 map to multiple current registrations.
+
+Current registration multiplicity among these identities:
+
+- 1 registration: 1,273 identities
+- 2 registrations: 1,063
+- 3 registrations: 103
+- 4 registrations: 19
+- 5 registrations: 4
+- 6 registrations: 2
+- 7 registrations: 1
+
+This supports using a separate analytical customer identity rather than
+ERP registration ID as the customer grain.
+
+### Legacy Dataset Coverage
+
+The validated legacy analytical sales layer currently covers:
+
+- Period: 02/01/2018 to 15/07/2024
+- Sale-item rows: 228,083
+- Distinct sales: 90,815
+- Analytical revenue: R$26,813,612.49
+- Known profit: R$7,701,172.49
+
+Known profit should not be interpreted as complete historical profit
+because some historical items have unavailable or unreliable cost.
