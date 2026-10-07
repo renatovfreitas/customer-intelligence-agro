@@ -414,7 +414,44 @@ Assess whether legacy ERP data dating back to 2018 can be reliably integrated wi
 * Determine which historical metrics can be integrated reliably.
 * Preserve aggregate historical analysis where customer-level matching is not sufficiently reliable.
 
----
+The legacy ERP database was assessed before historical data was merged
+with the current analytical model.
+
+Initial investigation identified several differences between the legacy
+and current ERP structures, including customer duplication, historical
+service representation, inventory movement types, returns and historical
+cost behavior.
+
+Customer matching was performed using normalized CPF/CNPJ. To avoid
+transferring plaintext customer documents between databases, documents
+were converted locally to SHA-256 hashes before cross-system matching.
+
+The legacy buyer population contained 2,471 distinct identifiable
+document identities, of which 2,465 were found in the current ERP
+(99.76%).
+
+The analysis also revealed substantial duplication of operational
+customer registrations. A separate customer identity dimension and
+registration bridge were therefore introduced instead of using ERP
+customer IDs as analytical customer identifiers.
+
+Legacy revenue logic was independently reconciled against sale-header
+totals. After accounting for returns, 90,795 of 90,815 sales reconciled
+within R$0.01 (99.978%), with only R$67.78 net difference across the
+entire analyzed period.
+
+Following validation, the legacy analytical layer was frozen with the
+following migration-control totals:
+
+- Rows: 228,083
+- Sales: 90,815
+- First sale: 2018-01-02
+- Last sale: 2024-07-15
+- Revenue: R$26,813,612.49
+- Known profit: R$7,701,172.49
+
+These totals will be used as reconciliation checkpoints when legacy
+sales are transferred into the integrated MariaDB analytical layer.
 
 # Sprint 9 — Power BI and Operational Integration
 
