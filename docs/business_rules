@@ -337,7 +337,106 @@ consistently with dynamic dates such as `CURDATE()` where appropriate.
 RFM, after-sales and other time-dependent rules must use the same reference
 date to avoid inconsistent classifications.
 
----
+# 20. Legacy ERP Integration
+
+### Customer Identity
+
+Customer identity across ERP systems is primarily resolved using
+normalized CPF/CNPJ.
+
+For privacy-preserving cross-system matching, normalized documents are
+converted to SHA-256 hashes before being transferred between systems.
+
+Operational customer registration IDs are not treated as customer
+identities because the same CPF/CNPJ may be associated with multiple
+registrations.
+
+The analytical model therefore separates:
+
+- customer identity
+- ERP source system
+- customer registration ID
+
+A bridge table maps ERP registrations to a common analytical customer
+identity.
+
+# 21. Legacy Customer Matching
+
+Among legacy customer registrations associated with sales since 2018:
+
+- 2,498 registration IDs were identified.
+- 2,494 retain a customer-master record.
+- 2,478 have a structurally valid CPF/CNPJ.
+- These represent 2,471 distinct document identities.
+- 2,465 of those identities were found in the current ERP.
+- 6 document identities exist only in the legacy ERP.
+
+Therefore, 99.76% of distinct document-identifiable legacy buyer
+identities were matched to the current ERP.
+
+Duplicate ERP registrations are not automatically treated as different
+customers when they share the same document identity.
+
+# 22. Legacy Item Classification
+
+Legacy sale items are classified as:
+
+- `SERVICE` when `VENDAS_ITENS.PRODUTO = 0`
+- `PRODUCT` otherwise
+
+`VENDAS_ITENS.TV` is treated as a movement type and not as an
+indicator of whether an item is a service.
+
+Legacy service descriptions are preserved from the sale item
+description because services were commonly recorded using product ID 0.
+
+# 23. Legacy Returns
+
+A legacy item is classified as a return when:
+
+`VENDAS.USUARIO LIKE 'Dev.%' AND VENDAS_ITENS.TV = 'EN'`
+
+Return quantities and revenue are represented with negative signs in
+the analytical layer.
+
+# 24. Legacy Revenue
+
+Legacy item revenue is calculated as:
+
+`quantity × PRVENDIDO`
+
+Returns receive a negative sign according to the return rule above.
+
+This rule was reconciled against `VENDAS.TOTAL` for 90,815 sales since
+2018.
+
+- 90,795 sales reconciled within R$0.01.
+- 20 sales remained as reconciliation exceptions.
+- Reconciliation rate: 99.978%.
+- Header revenue: R$26,813,680.27.
+- Calculated analytical revenue: R$26,813,612.49.
+- Net difference: R$67.78.
+
+`VENDAS_ITENS.TOTAL` is not used as analytical item revenue because
+tests showed that it can represent values before sale-level adjustments
+such as discounts.
+
+# 25. Legacy Cost and Profit
+
+`VENDAS_ITENS.CUSTOA` is used as the historical unit-cost field.
+
+CUSTOA and CUSTOM were equal in 214,163 of 214,208 analyzed product
+items, with only 45 differences. CUSTOA also had slightly better
+coverage.
+
+For services (`PRODUTO = 0`), profit is NULL because reliable historical
+cost is unavailable.
+
+For `TV = 'SV'` product records with zero cost, profit is also NULL
+rather than assuming zero cost.
+
+Therefore, historical `SUM(profit)` represents known historical profit,
+not necessarily complete historical profit.
 
 # Future Rules
 
