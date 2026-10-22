@@ -1,0 +1,35 @@
+-- Project: Customer Intelligence for Agricultural Machinery Retail
+-- Layer: Data transformation / historical ERP integration
+-- Purpose: Associate legacy sales items with consolidated customer identities.
+-- Output: vw_legacy_sales_integrated
+-- Dependencies: stg_legacy_sales, bridge_customer_registration
+-- Note: LEFT JOIN preserves legacy sale items without a matched customer identity.
+-- Note: The source-specific DEFINER was removed for repository portability.
+
+CREATE OR REPLACE VIEW vw_legacy_sales_integrated AS
+SELECT
+    b.customer_identity_id AS customer_identity_id,
+    s.sale_item_id AS sale_item_id,
+    s.sale_control AS sale_control,
+    s.sale_date AS sale_date,
+    s.customer_registration_id AS customer_registration_id,
+    s.customer_name AS customer_name,
+    s.item_type AS item_type,
+    s.product_id AS product_id,
+    s.product_name AS product_name,
+    s.product_master_missing AS product_master_missing,
+    s.legacy_product_group_id AS legacy_product_group_id,
+    s.legacy_product_group AS legacy_product_group,
+    s.transaction_type AS transaction_type,
+    s.quantity AS quantity,
+    s.unit_sale_price AS unit_sale_price,
+    s.unit_cost AS unit_cost,
+    s.revenue AS revenue,
+    s.profit AS profit,
+    s.movement_type AS movement_type,
+    s.source_user AS source_user,
+    s.source_system AS source_system
+FROM stg_legacy_sales AS s
+LEFT JOIN bridge_customer_registration AS b
+    ON b.source_system = 'LEGACY_ERP'
+   AND b.customer_registration_id = s.customer_registration_id;
