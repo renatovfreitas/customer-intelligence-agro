@@ -7,6 +7,13 @@ The analytical model combines data from the current ERP and the legacy
 ERP while preserving source-system registration IDs and resolving
 customers through a shared analytical identity layer.
 
+**Documentation status:** Sections 1–7 preserve the original integration-stage
+dictionary. Sections 8 onward describe the subsequent unified analytical
+model and RFM v2 snapshot. Historical control totals are not interchangeable
+with the unified snapshot totals. Fields listed as confirmed reflect previously
+used analytical SQL; exact physical definitions should be checked with
+`SHOW CREATE VIEW` / `DESCRIBE` before treating this as a complete schema inventory.
+
 ---
 
 ## 1. Current Sales Layer
@@ -202,3 +209,302 @@ reconciliation.
 
 These values should remain unchanged after staging unless an explicitly
 documented transformation requires otherwise.
+
+
+---
+
+## 8. Unified Classified Sales Layer (Current Analytical Base)
+
+### `vw_sales_unified_classified`
+
+Unified, classified sale-item dataset combining both ERPs, including **products
+and services**. This is the main transaction-level source for the current
+customer analysis, superseding the original product-only scope.
+
+**Grain:** one row per sale item, uniquely identified within its source system.
+Do not assume `sale_item_id` or `sale_control` is globally unique across ERPs.
+
+| Column | Description | Notes |
+|---|---|---|
+| customer_identity_id | Cross-ERP analytical customer ID | May be NULL for anonymous/unmatched items; bridge-derived |
+| source_system | Source ERP | `LEGACY_ERP`, `CURRENT_ERP` |
+| sale_item_id | Sale-item identifier | Interpret with `source_system` |
+| sale_control | Sale/transaction control | Interpret with `source_system` |
+| sale_date | Analytical sale date | Used for RFM and period filters |
+| customer_registration_id | Operational registration ID | Interpret with `source_system` |
+| item_type | Item category | `PRODUCT` or `SERVICE` |
+| product_id | Product identifier | Source-system specific; legacy 0 denotes service |
+| product_name | Product or service description | Source-dependent fallback logic |
+| transaction_type | Movement classification | May include `SALE` and `RETURN`; returns require separate audit for RFM |
+| quantity | Analytical quantity | Signed for recognized legacy returns |
+| unit_sale_price | Item unit sale price | Not always sufficient to reproduce current service revenue |
+| unit_cost | Recorded unit cost | Can be missing/unreliable |
+| revenue | Analytical item revenue | Use this field for aggregation |
+| profit | Known analytical item profit | NULL where cost is not reliable, notably services |
+| analytical_product_group | Normalized commercial group | Examples: `PECAS`, `IMPLEMENTOS`, `SERVICOS` |
+| classification_source | Origin of group classification | Values require schema inspection |
+| classification_status | Classification validation status | Observed: `CONFIRMED`, `PENDING`, `REVIEW` |
+
+**Validated unified snapshot:** 2018-01-02 through 2026-09-03;
+291,024 sale-item rows; R$35,875,034.95 total revenue.
+
+| Source and item type | Items | Revenue (R$) |
+|---|---:|---:|
+| Legacy ERP — products | 206,187 | 23,903,897.93 |
+| Legacy ERP — services | 21,894 | 2,909,677.57 |
+| Current ERP — products | 56,762 | 7,701,076.27 |
+| Current ERP — services | 6,181 | 1,360,383.18 |
+| **Total** | **291,024** | **35,875,034.95** |
+
+**Identity coverage:** 3,109 identifiable customers generated
+R$34,791,961.29 in unified item-level revenue. Another 28,838 anonymous
+*items* generated R$1,083,073.66. Anonymous item counts are not customer
+counts. Customer-profile totals can differ by a few cents from item-level
+revenue because of rounding (observed difference: R$0.07).
+
+### Classification validation
+
+| Status | Items | Revenue (R$) |
+|---|---:|---:|
+| `CONFIRMED` | 289,227 | 35,451,971.33 |
+| `PENDING` | 1,546 | 385,418.51 |
+| `REVIEW` | 251 | 37,645.11 |
+
+Pending/review items remain a data-quality issue; do not silently treat all
+groups as fully validated. The `REVIEW` group includes material classified
+as `MATERIA PRIMA` requiring investigation.
+
+---
+
+## 9. Classification and Integration Supporting Objects
+
+| Object | Role | Notes |
+|---|---|---|
+| `vw_legacy_sales_classified` | Classified legacy sale items | Feeds unified sales layer |
+| `dim_legacy_product_group_mapping` | Legacy group-to-analytical-group mapping | Mapping table; exact columns require inspection |
+| `dim_legacy_product_override` | Product-specific legacy classification corrections | Override precedence should be verified from view SQL |
+| `dim_product_group_override` | Current product-level classification corrections | Earlier imported override table; exact columns require inspection |
+| `bridge_customer_registration` | Maps source registrations to analytical identities | See Section 3 |
+
+The unified layer uses analytical product groups for comparisons across
+systems. Source ERP product IDs and subgroup IDs are not cross-system
+identifiers. The current ERP's completed-sale filter uses
+`mv_vendas.em_aberto = 1` in the implemented extraction logic; the
+operational meaning of that flag warrants independent verification.
+
+Current-ERP service revenue is sourced from recorded total (`vr_total`)
+where applicable rather than always multiplying quantity by unit price.
+A previously identified service record with source date `1899-12-30`
+was corrected analytically to `2025-12-17` (item ID 5141).
+These are explicit transformation decisions, not generic ERP rules.
+
+---
+
+## 10. Historical Customer Profile
+
+### `vw_customer_historical_profile`
+
+**Grain:** one row per identifiable `customer_identity_id`.
+
+The view summarizes the unified purchasing history, including customer
+lifetime revenue, first and last purchase dates, and lifetime activity.
+**Validated population:** 3,109 customers.
+
+Previously confirmed concepts/fields used downstream include:
+
+| Field / measure | Meaning |
+|---|---|
+| `customer_identity_id` | Unified customer key |
+| `first_purchase_date` | First observed sale date in integrated history |
+| `last_purchase_date` | Most recent observed sale date in integrated history |
+| Lifetime revenue | Revenue accumulated over integrated history; exact view column name should be checked |
+| Lifetime purchases | Distinct source-qualified transactions; exact view column name should be checked |
+
+The historical customer-profile sum is approximately R$34.79m. A validated
+profile-level total was R$34,791,961.22; it differs by R$0.07 from the
+item-level identifiable-customer total because of rounding.
+
+---
+
+## 11. RFM v2 Base
+
+### `vw_customer_rfm_base_v2`
+
+**Grain:** one row per identifiable customer; includes inactive customers.
+**Reference date:** `2026-09-03` (fixed snapshot).
+**12-month window:** `2025-09-04` through `2026-09-03`, inclusive.
+
+| Column | Description | Calculation / note |
+|---|---|---|
+| `customer_identity_id` | Unified customer identifier | One row per customer |
+| `first_purchase_date` | First observed historical purchase | Integrated history |
+| `last_purchase_date` | Last observed historical purchase | Integrated history |
+| `recency_days` | Days since last observed purchase | Relative to fixed snapshot date |
+| `total_purchases` | Lifetime distinct sales | Source-qualified transaction keys |
+| `lifetime_revenue` | Lifetime customer revenue | Integrated history |
+| `frequency_12m` | Distinct sales in 12-month window | `COUNT(DISTINCT CONCAT(source_system, ':', sale_control))` |
+| `monetary_12m` | Customer revenue in 12-month window | Sum of analytical revenue |
+| `profit_12m` | Known customer profit in 12-month window | May be NULL for service-only activity |
+
+**Validation:** 3,109 customers; 1,406 with at least one transaction in the
+12-month window; 1,703 without; total `monetary_12m` R$4,194,807.91.
+
+**Important:** `recency_days <= 365` is not identical to activity in the
+specified 12-month window: the cutoff includes 2025-09-03, while the
+window begins on 2025-09-04. Also, `profit_12m` is *known* profit and
+should not be described as complete economic profit.
+
+---
+
+## 12. RFM v2 Scores
+
+### `vw_customer_rfm_scores_v2`
+
+Builds on the RFM base. The following score columns have been confirmed
+in downstream analysis:
+
+| Column | Description |
+|---|---|
+| `r_score` | Recency score, integer 1–5 |
+| `f_score` | Frequency score, integer 1–5 |
+| `m_score` | Monetary score, integer 1–5 |
+
+| Score | Recency (`recency_days`) | Frequency (`frequency_12m`) | Monetary (`monetary_12m`, R$) |
+|---|---|---|---|
+| 5 | 0–30 | 11+ | 25,000+ |
+| 4 | 31–90 | 6–10 | 5,000–24,999.99 |
+| 3 | 91–180 | 4–5 | 1,000–4,999.99 |
+| 2 | 181–365 | 2–3 | 500–999.99 |
+| 1 | >365 | 0–1 | <500 |
+
+These are **v2 thresholds**, not the v1 thresholds retained in historical
+project documentation. In the v2 validation, 1,700 customers had R1/F1/M1.
+
+---
+
+## 13. RFM-Based Customer Segments v2
+
+### `vw_customer_segments_v2`
+
+**Grain:** one row per identifiable customer, with one mutually exclusive
+segment assigned by ordered `CASE` precedence.
+
+| Priority | Segment | Condition (first matching rule wins) |
+|---|---|---|
+| 1 | `VIP` | R >= 4 AND F >= 4 AND M >= 4 |
+| 2 | `Loyal Customers` | R >= 3 AND F >= 4 |
+| 3 | `High-Value Occasional` | R >= 3 AND M >= 4 |
+| 4 | `New Customers` | `first_purchase_date >= '2026-06-06'` |
+| 5 | `Promising` | R >= 4 |
+| 6 | `At Risk` | R = 2 AND (F >= 3 OR M >= 3) |
+| 7 | `Active Occasional` | R >= 2 |
+| 8 | `High-Value Lost` | R = 1 AND lifetime revenue >= R$50,000 |
+| 9 | `Former Regular Customers` | R = 1 AND lifetime revenue >= R$10,000 |
+| 10 | `Recently Inactive` | R = 1 AND recency <= 730 |
+| 11 | `Long-Term Inactive` | Remaining customers |
+
+The exact segment-output column name should be checked against the deployed
+view definition before writing new downstream SQL. The segment labels and
+precedence above reflect the implemented analytical rules.
+
+| Segment | Customers | 12-month revenue (R$) |
+|---|---:|---:|
+| VIP | 120 | 2,314,759.87 |
+| Loyal Customers | 303 | 825,249.29 |
+| At Risk | 137 | 439,692.39 |
+| High-Value Occasional | 19 | 281,269.99 |
+| Active Occasional | 564 | 183,748.61 |
+| Promising | 223 | 132,979.58 |
+| New Customers | 43 | 17,108.18 |
+| Recently Inactive | 437 | 0.00 |
+| Long-Term Inactive | 1,040 | 0.00 |
+| Former Regular Customers | 196 | 0.00 |
+| High-Value Lost | 27 | 0.00 |
+| **Total** | **3,109** | **4,194,807.91** |
+
+**Interpretation caveats:** `At Risk` is a rule-based label, not a measured
+probability of churn; implement buyers can have naturally long purchasing
+cycles. `Former Regular Customers` is based on historical revenue, not
+necessarily on frequent historical purchases. This RFM v2 segmentation
+is distinct from the older `vw_customer_commercial_segment` v1 model.
+
+---
+
+## 14. Product Group Purchase Behavior (12-Month Snapshot)
+
+Aggregations from `vw_sales_unified_classified` group customers and sale
+items by `analytical_product_group` within the RFM v2 window.
+
+| Product group | Distinct buyers | Revenue (R$) |
+|---|---:|---:|
+| `PECAS` | 1,286 | 1,756,883.24 |
+| `IMPLEMENTOS` | 49 | 998,078.00 |
+| `SERVICOS` | 611 | 603,880.40 |
+| `DIVERSOS` | 661 | 296,829.08 |
+| `OLEOS E LUBRIFICANTES` | 405 | 270,084.11 |
+| `TRATORES` | 1 | 188,000.00 |
+
+Additional smaller groups complete the 11-group snapshot. Group customer
+counts **overlap**: one customer may buy multiple groups. Item-level
+product-group revenue totals R$4,194,807.94, a R$0.03 rounding difference
+from the customer RFM base.
+
+### Observed implement / parts / services overlap
+
+Among 49 identified customers who bought `IMPLEMENTOS` in the window:
+
+- 37 also bought `PECAS` (75.51%).
+- 28 also bought `SERVICOS` (57.14%).
+- 27 bought both `PECAS` and `SERVICOS`.
+- 10 bought `PECAS` but not `SERVICOS`.
+- 1 bought `SERVICOS` but not `PECAS`.
+- 11 bought neither `PECAS` nor `SERVICOS` in the window.
+
+These are **co-purchase** measures; they do **not** establish that a parts
+or services transaction occurred *after* an implement purchase. The earlier
+Commercial Segments v1 after-sales analysis used different dates and
+sequence-based criteria and must not be conflated with this result.
+
+For the 11 implement buyers with no current-window parts/services purchases:
+6 had purchased at least one of those groups historically; 5 had no
+recorded historical purchases in either group. Among the 6, four had at
+least four distinct historical parts transactions. These are possible
+commercial-review candidates, not proven missed sales.
+
+---
+
+## 15. Data Quality, Interpretation and Verification Checklist
+
+- **Returns:** Legacy returns are represented with signed amounts, but
+  whether `transaction_type='RETURN'` should contribute to customer
+  purchase frequency or last-purchase recency needs a separate audit.
+- **Missing cost:** `profit` can be NULL for services and unreliable-cost
+  products. `SUM(profit)` is known profit, not complete profit.
+- **Anonymous activity:** Retain anonymous items for overall product and
+  revenue reporting; exclude them from identified-customer RFM.
+- **Identity matching:** Shared document-backed customer identity is
+  analytical, not equivalent to source ERP registration ID.
+- **Snapshot consistency:** Apply the same fixed date and 12-month window
+  to RFM and co-purchase analysis. Historical v1 snapshots should remain
+  explicitly labeled as such.
+- **Classification:** Investigate `PENDING` and `REVIEW` items; preserve
+  classification provenance.
+- **Schema validation:** Confirm actual columns, data types, primary keys,
+  indexes and view SQL in MariaDB before declaring this a physical schema
+  specification. In particular, verify exact output column names of
+  `vw_customer_historical_profile` and `vw_customer_segments_v2`.
+
+### Suggested MariaDB / HeidiSQL verification commands
+
+```sql
+DESCRIBE vw_sales_unified_classified;
+DESCRIBE vw_customer_historical_profile;
+DESCRIBE vw_customer_rfm_base_v2;
+DESCRIBE vw_customer_rfm_scores_v2;
+DESCRIBE vw_customer_segments_v2;
+SHOW CREATE VIEW vw_customer_segments_v2;
+```
+
+**Documentation convention:** Retain historical models as versioned
+artifacts. The RFM v2 snapshot is the current customer-analysis reference;
+the original Sections 1–7 remain as source and migration documentation.
