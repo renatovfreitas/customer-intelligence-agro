@@ -450,8 +450,223 @@ following migration-control totals:
 - Revenue: R$26,813,612.49
 - Known profit: R$7,701,172.49
 
-These totals will be used as reconciliation checkpoints when legacy
-sales are transferred into the integrated MariaDB analytical layer.
+These totals served as reconciliation checkpoints for the subsequent
+legacy-to-MariaDB integration. The figures above describe the legacy
+source extract, not the entire unified analytical dataset.
+
+
+
+## Integration Completion — Unified Historical Sales
+
+**Status: Completed (supersedes the initial planned integration activities above).**
+
+The validated legacy and current ERP sales were combined into
+`vw_sales_unified_classified`, with source-specific customer registrations
+resolved through `bridge_customer_registration` and a common
+`customer_identity_id`. Products and services are both represented in the
+unified analytical layer.
+
+### Validated unified dataset (snapshot ending 2026-09-03)
+
+| Source / item type | Sale-item rows | Revenue |
+|---|---:|---:|
+| Legacy ERP — products | 206,187 | R$23,903,897.93 |
+| Legacy ERP — services | 21,894 | R$2,909,677.57 |
+| Current ERP — products | 56,762 | R$7,701,076.27 |
+| Current ERP — services | 6,181 | R$1,360,383.18 |
+| **Unified total** | **291,024** | **R$35,875,034.95** |
+
+- Unified transaction-date coverage: **2018-01-02 to 2026-09-03**.
+- **3,109 identifiable customers** in the unified customer population.
+- Identifiable-customer revenue: **R$34,791,961.29** in the sales layer.
+- Anonymous sales: **28,838 sale-item rows**, totaling **R$1,083,073.66**;
+  excluded from customer-level segmentation, not from total sales reporting.
+- Historical and current services are included in revenue, but service cost
+  coverage is incomplete. `profit = NULL` where cost is unavailable; known
+  profit must not be presented as total profit.
+- Classification audit: **289,227 CONFIRMED** items (R$35,451,971.33),
+  **1,546 PENDING** (R$385,418.51), and **251 REVIEW** (R$37,645.11).
+- Current ERP service date anomaly (1899-12-30, item 5141) was corrected in
+  the analytical layer to 2025-12-17. Four current-service rows required
+  `vr_total` rather than quantity × unit price (R$790 aggregate difference).
+- Legacy migrated duplicates were excluded to avoid double counting.
+
+**Caveat:** Transaction-type handling, particularly the influence of returns
+on customer purchase frequency and recency, merits a separate audit before
+operational deployment.
+
+---
+
+# Sprint 8 — Unified Customer Behavior and Segmentation v2
+
+## Objective
+
+Rebuild customer behavior and segmentation using the integrated 2018–2026
+history, while retaining a fixed and reproducible 12-month current-behavior
+window.
+
+## Activities Completed
+
+- Created and validated `vw_customer_historical_profile`.
+- Created `vw_customer_rfm_base_v2`, `vw_customer_rfm_scores_v2`, and
+  `vw_customer_segments_v2`.
+- Separated full-history customer attributes from 12-month Frequency and
+  Monetary metrics.
+- Recalibrated RFM scores for the expanded historical population.
+- Tested the segmentation for coverage and mutually exclusive assignment.
+- Analyzed revenue distribution by analytical product group.
+- Evaluated PEÇAS and SERVICOS cross-purchasing among IMPLEMENTOS buyers.
+- Investigated historical category relationships for implement buyers who
+  had no parts or service purchases in the 12-month window.
+
+## Fixed Analysis Dates
+
+- Reference date: **2026-09-03**.
+- 12-month window: **2025-09-04 through 2026-09-03**, inclusive.
+- Historical profile: all available valid history from **2018-01-02**.
+
+## RFM v2 Rules
+
+**Recency** (days since last observed purchase at reference date):
+R5 = 0–30; R4 = 31–90; R3 = 91–180; R2 = 181–365; R1 = >365.
+
+**Frequency** (distinct transactions in the 12-month window):
+F5 = 11+; F4 = 6–10; F3 = 4–5; F2 = 2–3; F1 = 0–1.
+A distinct transaction is identified by source system plus sale control,
+not sale-item row count.
+
+**Monetary** (12-month revenue):
+M5 = R$25,000+; M4 = R$5,000–24,999.99;
+M3 = R$1,000–4,999.99; M2 = R$500–999.99; M1 = below R$500.
+
+Revenue is the Monetary measure. Profit is complementary and may be
+incomplete when service costs are unavailable.
+
+## RFM Base Validation
+
+| Metric | Result |
+|---|---:|
+| Identifiable customers | 3,109 |
+| Active in the fixed 12-month window | 1,406 |
+| No transactions in that window | 1,703 |
+| Identified-customer 12-month revenue | R$4,194,807.91 |
+| Maximum 12-month distinct purchases | 237 |
+| Maximum 12-month customer revenue | R$193,736.21 |
+
+The historical-profile aggregate of customer revenue was R$34,791,961.22;
+the R$0.07 difference from identifiable sales-layer revenue is attributable
+to aggregation/rounding and should remain visible in reconciliation checks.
+
+## Customer Segments v2
+
+`vw_customer_segments_v2` assigns exactly one segment per identified
+customer using ordered rules: VIP; Loyal Customers; High-Value Occasional;
+New Customers; Promising; At Risk; Active Occasional; High-Value Lost;
+Former Regular Customers; Recently Inactive; Long-Term Inactive.
+
+| Segment | Customers | Revenue in 12 months |
+|---|---:|---:|
+| VIP | 120 | R$2,314,759.87 |
+| Loyal Customers | 303 | R$825,249.29 |
+| At Risk | 137 | R$439,692.39 |
+| High-Value Occasional | 19 | R$281,269.99 |
+| Active Occasional | 564 | R$183,748.61 |
+| Promising | 223 | R$132,979.58 |
+| New Customers | 43 | R$17,108.18 |
+| Recently Inactive | 437 | R$0.00 |
+| Long-Term Inactive | 1,040 | R$0.00 |
+| Former Regular Customers | 196 | R$0.00 |
+| High-Value Lost | 27 | R$0.00 |
+| **Total** | **3,109** | **R$4,194,807.91** |
+
+The **120 VIP customers generated approximately 55.2%** of identified
+customer revenue during the 12-month window. Segment labels are analytical
+heuristics, not verified churn outcomes. In particular, a low-frequency
+implement buyer may be labeled At Risk even when their buying cycle is normal.
+
+## Inactive Customer Reactivation Finding
+
+- **1,700 customers** received RFM score 111.
+- Of these, **223** had lifetime revenue of at least R$10,000, totaling
+  approximately **R$6.64 million** in historical revenue.
+- This supports prioritizing dormant relationships by historical value and
+  frequency rather than treating all inactive customers as equivalent.
+
+## Product-Group Behavior — 12-Month Snapshot
+
+The 12-month product-group aggregation covered 27,347 sale-item rows and
+R$4,194,807.94 in item-level revenue (R$0.03 difference from customer RFM
+aggregate due to rounding).
+
+- PEÇAS: **1,286 customers**, **R$1,756,883.24** (41.88%).
+- IMPLEMENTOS: **49 customers**, **R$998,078.00** (23.79%).
+- SERVICOS: **611 customers**, **R$603,880.40** (14.40%).
+- ÓLEOS E LUBRIFICANTES: **405 customers**, **R$270,084.11** (6.44%).
+- TRATORES: **1 customer**, **R$188,000.00** (4.48%).
+
+Customer counts overlap between product groups and must not be added.
+
+## Implement Cross-Selling Investigation
+
+Among the **49** identified customers purchasing IMPLEMENTOS during the
+12-month window:
+
+| Co-purchase behavior during the window | Customers |
+|---|---:|
+| PEÇAS and SERVICOS | 27 |
+| PEÇAS, but not SERVICOS | 10 |
+| SERVICOS, but not PEÇAS | 1 |
+| Neither PEÇAS nor SERVICOS | 11 |
+| **Total** | **49** |
+
+- **37/49 (75.51%)** bought PEÇAS in the same window.
+- **28/49 (57.14%)** bought SERVICOS in the same window.
+- The **11** customers with neither category generated **R$115,832** in
+  IMPLEMENTOS revenue during the 12-month window.
+- Of these 11, **six** had historical purchases of PEÇAS and/or SERVICOS;
+  **five** had no such purchase recorded in the available 2018–2026 history.
+- Four of the six historically engaged customers had **at least four
+  distinct PEÇAS transactions**.
+- Customer 4118: 10 historical PEÇAS transactions, 37 items, last PEÇAS
+  purchase on 2024-04-29; R$29,500 in recent IMPLEMENTOS revenue.
+- Customer 1182: 10 historical PEÇAS transactions and one service
+  transaction; last category purchase on 2024-10-29.
+
+**Interpretation:** These are potential category reactivation and
+cross-selling leads for commercial review, **not demonstrated lost sales**.
+Co-purchase within a 12-month window does not establish purchase order or
+causality. The prior Sprint 6 temporal after-sales findings belong to the
+older, differently scoped snapshot and must not be merged numerically with
+these v2 co-purchase figures.
+
+## Deliverables
+
+- `vw_sales_unified_classified` (unified sales layer).
+- `vw_customer_historical_profile`.
+- `vw_customer_rfm_base_v2`.
+- `vw_customer_rfm_scores_v2`.
+- `vw_customer_segments_v2`.
+- Product-group behavior and implement cross-selling SQL analyses.
+- Updated `docs/insights.md`, `docs/business_rules.md`, and
+  `docs/data_dictionary.md`; newly created `docs/project_scope.md`.
+
+## Outstanding Validation and Future Improvements
+
+- Audit returns and their effects on purchase frequency/recency.
+- Validate remaining PENDING/REVIEW product classifications.
+- Distinguish normal equipment purchase cycles from genuine customer risk.
+- Develop reusable category-level customer behavior views rather than
+  manually maintained lists of customer IDs.
+- Add purchase-sequence and comparable observation-window analysis to the
+  integrated after-sales dataset.
+- Validate customer-level profit coverage before complete profitability
+  rankings or margin-based operational decisions.
+
+## Sprint Status
+
+**Completed for the fixed v2 analytical snapshot; operationalization pending.**
+
+---
 
 # Sprint 9 — Power BI and Operational Integration
 
@@ -492,38 +707,29 @@ Evolve the project from a static portfolio analysis into a continuously updated 
 
 ## Completed
 
-* Business Understanding
-* Data Understanding
-* Initial Data Extraction
-* Data Cleaning and Validation
-* Product Classification
-* Analytical Sales View
-* Customer Master View
-* Customer EDA
-* RFM v1 and Customer Profile
-* Product Behavior Analysis
-* Temporal After-Sales Analysis
-* Commercial Segments v1
-* `vw_customer_commercial_segment`
-* Business Insight Documentation
+- Sprints 1–6: project definition, current ERP exploration, customer EDA,
+  initial RFM and Commercial Segments v1 (historical project milestones).
+- Sprint 7: legacy ERP assessment, reconciliation and unified integration.
+- Sprint 8: historical customer profile, RFM v2, Customer Segments v2,
+  product-group analysis and implement cross-selling investigation.
+- Project documentation refresh: insights, business rules, data dictionary,
+  and project scope.
 
 ## Next
 
-* Sprint 8 — Customer Behavior & Segmentation v2
+- Prepare reusable customer/product-group behavioral views.
+- Complete outstanding data-quality and transaction-type validation.
+- Start Sprint 9 — Power BI and Operational Integration.
 
 ## Planned
 
-* Sprint 8 — Customer Behavior & Segmentation v2
-* Sprint 9 — Power BI & Operational Integration
-* Automated Refresh
-* Actionable Customer Lists
-* Business Recommendations
-* Executive Report
+- Power BI semantic model, customer dashboards and actionable customer lists.
+- Automated refresh and consistent dynamic reference-date logic.
+- SQL-to-dashboard metric reconciliation and executive reporting.
 
 ## Future Opportunities
 
-* Comparable 90/180/365-day after-sales cohorts
-* Lubricants and other recurring-product after-sales analysis
-* Customer Lifetime Value
-* Customer Reactivation Monitoring
-* Predictive Customer Models
+- Comparable 90/180/365-day after-sales cohorts on the unified dataset.
+- Lubricants and other recurring-product after-sales analysis.
+- Customer lifetime value and reactivation monitoring.
+- Predictive customer models once data and business definitions are validated.
