@@ -1,3 +1,11 @@
+# Analytical Business Rules — Versioned Reference
+
+**Current analytical snapshot:** 03 September 2026  
+**Current version:** Integrated Historical Customer Intelligence / RFM v2  
+**Status:** The original sections 1–25 below document the project's development, including superseded v1 assumptions. **For the current model, follow the v2 rules in sections 26–35.** When an earlier rule conflicts with a v2 rule, the v2 rule takes precedence. Historical figures are not directly comparable unless their population, period and definitions match.
+
+---
+
 # Analytical Business Rules
 
 This document describes the business and analytical rules adopted throughout the project. These rules were defined during the data understanding and preparation phases to ensure consistent, reliable and business-oriented analyses.
@@ -437,6 +445,131 @@ rather than assuming zero cost.
 
 Therefore, historical `SUM(profit)` represents known historical profit,
 not necessarily complete historical profit.
+
+
+
+---
+
+# Current Integrated Model — Rules v2
+
+## 26. Integrated Scope and Snapshot
+
+- The current analytical sales layer is `vw_sales_unified_classified`, combining `LEGACY_ERP` and `CURRENT_ERP`.
+- The observed unified history runs from **2018-01-02 through 2026-09-03**; the fixed reference date is **2026-09-03**.
+- The integrated scope includes **PRODUCT** and **SERVICE** items. Earlier statements restricting scope to products or excluding services describe prior project versions only.
+- The unified classified layer contains **291,024 sale-item rows** and approximately **R$35,875,034.95** in analytical revenue, including transactions without identified customers.
+- Do not silently apply the old 2024–2026 window or the v1 RFM reference date to v2 analyses.
+- For the current ERP, the implemented filter is `v.em_aberto = 1`. Its exact business interpretation as finalized/completed status has **not yet been independently confirmed**; retain it as an implemented source rule, not as an externally verified semantic claim.
+
+## 27. Unified Customer Identity and Anonymous Sales
+
+- Analytical customer grain is **one `customer_identity_id`**, not one operational registration ID and not simply a name.
+- `bridge_customer_registration` maps `(source_system, customer_registration_id)` to the unified `customer_identity_id`.
+- Cross-system matching is primarily based on normalized CPF/CNPJ; the earlier SHA-256 matching approach and validation findings remain documented in sections 20–21.
+- A customer may have several ERP registrations. The bridge must be used before aggregating customer history across systems.
+- Sales without a reliable identity have `customer_identity_id IS NULL`. They remain relevant for overall sales/product analysis but are excluded from customer-level RFM and segmentation.
+- Validated identified population: **3,109 customer identities**. Historical identified-customer revenue is approximately **R$34,791,961.29** before customer-level rounding.
+- The customer historical profile sums to **R$34,791,961.22** because of aggregation/rounding; do not interpret the R$0.07 difference as a missing sale.
+
+## 28. Unified Transaction Grain and Sales Counting
+
+- One row in `vw_sales_unified_classified` represents one sale item, either PRODUCT or SERVICE.
+- A transaction may contain multiple items and both item types.
+- Within the integrated data, a sale is identified for counting by the **combination of `source_system` and `sale_control`**, not by `sale_control` alone.
+- RFM frequency uses `COUNT(DISTINCT CONCAT(source_system, ':', sale_control))` in the defined 12-month window; this avoids double-counting item rows while keeping transactions from different source systems distinct.
+- `COUNT(*)` counts item rows, not transactions. Product-group customer counts may overlap because one customer can purchase multiple groups.
+- A known duplicated migrated transaction was excluded from the unified analytical layer to avoid double-counting.
+
+## 29. Revenue, Returns, Costs and Profit Coverage
+
+- Use the unified view's validated `revenue` and `profit` fields as the analytical source, respecting source-specific calculation rules.
+- Legacy product/service classification, return sign conventions, and historical cost limitations remain described in sections 22–25.
+- Current ERP service revenue uses the recorded `vr_total` field in the validated analytical logic, rather than assuming quantity times unit price in every case.
+- For historical services without reliable cost, `profit` is **NULL**. Known profit totals must be labeled **known profit**, not total or fully comparable profitability.
+- Revenue and profit should not be assumed to have identical data coverage. A `NULL` cost/profit is not equivalent to zero cost/profit.
+- Do not infer margin for service-only customers from incomplete cost records.
+
+## 30. Analytical Product Classification and Quality
+
+- The reporting group is `analytical_product_group`; `item_type` (PRODUCT/SERVICE) is a distinct dimension and must not be conflated with the group label.
+- The legacy mapping layer uses `dim_legacy_product_group_mapping` and `dim_legacy_product_override`; the current ERP has its own group mapping/override logic.
+- Legacy group 10 (IMPLEMENTOS) was validated and its classification status changed to CONFIRMED.
+- The integrated classification quality check recorded **289,227 CONFIRMED** item rows (R$35,451,971.33), **1,546 PENDING** (R$385,418.51), and **251 REVIEW** (R$37,645.11). These are snapshot diagnostics, not timeless rules.
+- Preserve `classification_source` and `classification_status` for audits. Do not automatically treat pending/review items as fully validated categories.
+
+## 31. Historical Customer Profile and RFM v2 Base
+
+- `vw_customer_historical_profile` summarizes all available identified-customer history.
+- `vw_customer_rfm_base_v2` provides `customer_identity_id`, `first_purchase_date`, `last_purchase_date`, `recency_days`, `total_purchases`, `lifetime_revenue`, `frequency_12m`, `monetary_12m`, and `profit_12m`.
+- Fixed reference date: **2026-09-03**.
+- Frequency and Monetary window: **2025-09-04 through 2026-09-03**, inclusive; equivalent half-open filter: `sale_date >= '2025-09-04' AND sale_date < '2026-09-04'`.
+- Recency is the number of days between the reference date and the last observed purchase in the historical profile; customers with no purchases in the recent window remain in the RFM population.
+- `frequency_12m` counts distinct source-qualified sale controls; `monetary_12m` sums recent revenue.
+- Validated counts: **3,109 identified customers**, of whom **1,406** have `frequency_12m > 0` and **1,703** have no transaction in the defined recent window.
+- Validated 12-month revenue: **R$4,194,807.91** in the RFM customer base. Aggregation directly from sale-item rows may differ by a few cents due to rounding.
+- Profit remains a complementary measure and may be incomplete because of service-cost coverage.
+- **Open methodological check:** verify whether return-only transactions should count as purchases for Recency/Frequency; the currently implemented base uses the source-qualified transaction count and historical last-purchase logic as constructed. This has not been separately audited for return-only cases.
+
+## 32. RFM v2 Scoring Rules
+
+`vw_customer_rfm_scores_v2` assigns integer scores from 1 to 5 using these fixed, business-interpretable thresholds (not statistical quintiles):
+
+| Score | Recency (`recency_days`) | Frequency (`frequency_12m`) | Monetary (`monetary_12m`) |
+|---|---|---|---|
+| 5 | 0–30 days | 11+ purchases | R$25,000+ |
+| 4 | 31–90 days | 6–10 purchases | R$5,000–24,999.99 |
+| 3 | 91–180 days | 4–5 purchases | R$1,000–4,999.99 |
+| 2 | 181–365 days | 2–3 purchases | R$500–999.99 |
+| 1 | >365 days | 0–1 purchases | <R$500 |
+
+- The scoring view contains **3,109 customers**; each score ranges from 1 to 5.
+- **1,700 customers** are `R=1, F=1, M=1`. This differs from the **1,703** customers with zero frequency in the strict 12-month window because the 365-day Recency cutoff and the inclusive 12-month window have a one-day boundary difference.
+- Among the 1,406 active customers, no zero or negative `monetary_12m` was observed in the validated snapshot (minimum R$2.10, maximum R$193,736.21).
+- Older v1 Frequency and Monetary thresholds in section 15 remain historical, not current.
+
+## 33. Customer Segments v2 — Mutually Exclusive Precedence
+
+`vw_customer_segments_v2` assigns exactly one segment per customer by evaluating the following rules **in order**:
+
+1. **VIP** — `r_score >= 4 AND f_score >= 4 AND m_score >= 4`.
+2. **Loyal Customers** — `r_score >= 3 AND f_score >= 4`.
+3. **High-Value Occasional** — `r_score >= 3 AND m_score >= 4`.
+4. **New Customers** — `first_purchase_date >= '2026-06-06'` (fixed 90-day snapshot rule).
+5. **Promising** — `r_score >= 4`.
+6. **At Risk** — `r_score = 2 AND (f_score >= 3 OR m_score >= 3)`.
+7. **Active Occasional** — remaining customers with `r_score >= 2`.
+8. **High-Value Lost** — `r_score = 1 AND lifetime_revenue >= 50000`.
+9. **Former Regular Customers** — `r_score = 1 AND lifetime_revenue >= 10000`.
+10. **Recently Inactive** — `r_score = 1 AND recency_days <= 730`.
+11. **Long-Term Inactive** — all remaining customers.
+
+- The labels are descriptive **versioned rules**, not proof of churn, loyalty, customer lifetime value, or recoverable revenue.
+- `Former Regular Customers` is currently defined by historical revenue, **not** a minimum historical purchase count; its name must not be treated as proof of recurrence.
+- The `At Risk` rule does not identify all customers whose purchase frequency has declined; customer risk should eventually be a separate indicator.
+- Different product groups have different purchase cycles, so long recency among implement/tractor buyers should not automatically imply abandonment.
+- Snapshot results: VIP **120**, Loyal **303**, High-Value Occasional **19**, New **43**, Promising **223**, At Risk **137**, Active Occasional **564**, and inactive segments together **1,700**; total **3,109**.
+- This RFM v2 segmentation is distinct from the earlier seven-segment Commercial Segments v1 in section 18. Do not combine the two as though they were the same model.
+
+## 34. Product Co-Purchase and Cross-Selling Definitions
+
+- The recent cross-selling exploratory analysis uses the same fixed window as RFM v2: **2025-09-04 through 2026-09-03**.
+- `buys_implements`, `buys_parts`, and `buys_services` are customer-level presence flags (1 if any item exists in the corresponding `analytical_product_group` during the window, otherwise 0).
+- **Co-purchase** means a customer purchased both groups within the observation window; it does **not** establish order, causal conversion, or a purchase after an equipment sale.
+- Validated implement-buyer cohort: **49** customers. Of these, **37** also purchased PEÇAS, **28** SERVICOS, and **11** purchased neither group during the same window.
+- The mutually exclusive breakdown is **27 both PEÇAS and SERVICOS**, **10 PEÇAS only**, **1 SERVICOS only**, and **11 neither**. “Only” is relative to PEÇAS/SERVICOS within the implement cohort; it does not exclude purchases from other product groups.
+- Among the 11 with neither group in the recent window, **6** had historical PEÇAS/SERVICOS activity and **5** had none recorded in the integrated history.
+- Of the six with history, four customers had at least four distinct PEÇAS transactions; historical item counts must not be mistaken for distinct sales.
+- Absence of observed parts/services purchases does not prove missed revenue or demand. Review the date of implement purchase, equipment needs, external purchasing and available follow-up time before operational targeting.
+- The earlier v1 **temporal** after-sales rule (sections 17 and 18) answers a different question and must not be directly compared to the v2 same-window co-purchase rate.
+
+## 35. Reproducibility and Documentation Controls
+
+- Keep the source system, reporting grain, inclusion/exclusion rules, observation window, snapshot date and rounding level explicit in each analysis.
+- Treat all validated numbers above as **snapshot results**, not permanent business constants.
+- When changing score thresholds, segment precedence, mappings or dates, version the logic and rerun reconciliations.
+- Reconcile identified-customer totals separately from all-sale totals, and sale-item counts separately from distinct transaction counts.
+- Document outstanding issues instead of silently resolving them: incomplete service profit, unconfirmed `em_aberto` semantics, return-only effects on RFM, and unconfirmed commercial meaning of risk labels.
+- For future operationalization, replace fixed dates with a single consistent parameterized reference date and recompute all dependent windows together.
 
 # Future Rules
 
