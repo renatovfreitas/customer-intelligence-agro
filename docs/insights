@@ -724,3 +724,324 @@ The validated legacy analytical sales layer currently covers:
 
 Known profit should not be interpreted as complete historical profit
 because some historical items have unavailable or unreliable cost.
+
+
+========================================================================
+
+CUSTOMER INTELLIGENCE V2 — UNIFIED HISTORICAL DATA AND COMMERCIAL FINDINGS
+
+Scope note
+
+Insights 001–017 above document earlier project stages, including the
+pre-integration customer population, Commercial Segments v1, and analyses
+with different observation windows. Their metrics should not be compared
+directly with the integrated v2 figures below. The statement in Lessons
+Learned that historical integration is the next phase is now superseded:
+that integration has been completed for the analytical dataset.
+
+Unless stated otherwise, v2 RFM and cross-selling findings use the fixed
+reference date 2026-09-03 and the 12-month window 2025-09-04 through
+2026-09-03 (inclusive). Values are descriptive, not causal estimates.
+
+------------------------------------------------------------------------
+
+Insight 018 — Historical ERP Integration Expanded Customer Visibility
+
+Finding
+
+The unified analytical layer covers 2018-01-02 to 2026-09-03, combining
+legacy and current ERP product and service transactions:
+
+- 291,024 sale-item rows.
+- R$35,875,034.95 in total analytical revenue.
+- 3,109 identified analytical customer identities.
+- R$34,791,961.29 attributable to identified customers when aggregated
+  from unrounded sales data.
+- 28,838 unidentified sale items totaling R$1,083,073.66; these are
+  transaction rows, not 28,838 distinct customers.
+
+The customer historical profile totals R$34,791,961.22 after rounding at
+the customer level (a R$0.07 aggregation difference).
+
+Business Impact
+
+Cross-ERP customer identity resolution enables longitudinal analysis
+without splitting the same customer's transactions across registration
+IDs or ERP systems. Profit remains partially observed because some
+service costs are unavailable; it must not be represented as complete
+company profitability.
+
+Recommendation
+
+Use customer_identity_id as the customer grain. Keep source_system and
+sale identifiers for auditability. Label known profit as incomplete where
+cost coverage is insufficient, and monitor unidentified transactions.
+
+------------------------------------------------------------------------
+
+Insight 019 — RFM v2 Reveals a Large Inactive Historical Customer Base
+
+Finding
+
+The validated vw_customer_rfm_base_v2 and scoring layer contain:
+
+- 3,109 identified historical customers.
+- 1,406 customers with at least one recorded purchase in the 12-month
+  window; 1,703 without purchases in that window.
+- R$4,194,807.91 in 12-month revenue among identified customers.
+- 1,700 customers with RFM scores of 111 (54.7% of historical customers).
+
+The 1,700 RFM-111 customers have recency greater than 365 days. The
+three-customer difference versus the 1,703 without 12-month purchases
+comes from the date boundary: 365 days before the reference date includes
+2025-09-03, whereas the 12-month window starts 2025-09-04.
+
+All 1,406 active customers have positive monetary_12m (minimum R$2.10,
+maximum R$193,736.21); none have zero or negative monetary_12m.
+
+Business Impact
+
+A single 'inactive' label obscures substantial differences in past
+engagement and value. The boundary convention must be documented to
+avoid apparent count discrepancies.
+
+Recommendation
+
+Keep RFM scores, exact recency, frequency_12m, monetary_12m, and
+lifetime_revenue available independently. Avoid equating an RFM-111
+score with uniformly low historical customer value.
+
+------------------------------------------------------------------------
+
+Insight 020 — Recent Revenue Is Concentrated in a Small Active Cohort
+
+Finding
+
+Among the 1,406 active customers:
+
+- 30 customers with monetary_12m >= R$25,000 generated R$1,598,033.80,
+  or approximately 38.1% of 12-month revenue.
+- 861 customers with monetary_12m below R$1,000 generated a combined
+  R$247,451.83, approximately 5.9% of 12-month revenue.
+
+Business Impact
+
+Revenue exposure is concentrated in a small number of commercially
+important relationships, while a broad lower-spend customer population
+may have different development opportunities.
+
+Recommendation
+
+Prioritize relationship monitoring for high-revenue customers and test
+frequency or basket-building initiatives in appropriate lower-spend
+segments. Use profitability and product mix to refine priority.
+
+------------------------------------------------------------------------
+
+Insight 021 — Historically Valuable Customers Exist Among RFM-111 Accounts
+
+Finding
+
+Among 1,700 customers scored RFM 111:
+
+- 27 generated at least R$50,000 each historically, totaling
+  R$2,667,536.69, with an average of 151.15 historical purchases.
+- 196 generated R$10,000–49,999.99 each historically, totaling
+  R$3,971,386.16, with an average of 35.18 purchases.
+- Combined, these 223 customers generated R$6,638,922.85 in historical
+  revenue, or approximately 76.9% of RFM-111 historical revenue.
+- Of those 223, 98 have been inactive for 366–730 days, 44 for
+  731–1,095 days, and 81 for more than 1,095 days.
+
+Business Impact
+
+Historical value and elapsed time since last purchase help distinguish
+potential reactivation candidates from long-dormant occasional buyers.
+Historical revenue is not an estimate of recoverable future sales.
+
+Recommendation
+
+Review the 98 relatively more recent high-value inactive customers first,
+subject to product purchasing cycles, customer contactability and
+commercial feasibility. Treat historical value thresholds as prioritization
+rules rather than predictions of return.
+
+------------------------------------------------------------------------
+
+Insight 022 — Commercial Segmentation v2 Is Validated but Descriptive
+
+Finding
+
+The vw_customer_segments_v2 assigns all 3,109 customers to one of 11
+mutually exclusive segments. The seven segments with 12-month revenue
+are:
+
+- VIP: 120 customers; R$2,314,759.87 (55.2% of 12-month revenue).
+- Loyal Customers: 303; R$825,249.29 (19.7%).
+- At Risk: 137; R$439,692.39 (10.5%).
+- High-Value Occasional: 19; R$281,269.99 (6.7%).
+- Active Occasional: 564; R$183,748.61 (4.4%).
+- Promising: 223; R$132,979.58 (3.2%).
+- New Customers: 43; R$17,108.18 (0.4%).
+
+The remaining 1,700 are distributed among four inactive segments:
+High-Value Lost (27), Former Regular Customers (196), Recently Inactive
+(437) and Long-Term Inactive (1,040).
+
+VIP customers average 38.77 purchases in 12 months and approximately
+25 days since last purchase. High-Value Occasional customers average
+2.63 purchases and R$14,803.68 in 12-month revenue, illustrating that
+high monetary value need not imply high frequency.
+
+Business Impact
+
+The segmentation translates RFM into reviewable commercial groups and
+shows that 120 VIP customers account for over half of recent revenue.
+However, 'At Risk' is a rules-based label, not a validated churn model.
+Customers purchasing equipment may naturally have longer intervals than
+regular parts buyers.
+
+Recommendation
+
+Use v2 segments as a descriptive reporting layer. Retain separate
+customer risk indicators and product-group behavior for commercial
+interpretation; do not treat segment names as predictive outcomes.
+
+------------------------------------------------------------------------
+
+Insight 023 — Parts, Implements and Services Drive Most Recent Revenue
+
+Finding
+
+For identified customers during the 12-month window, product-group
+analysis shows approximately:
+
+- PEÇAS: 1,286 customers, R$1,756,883.24 (41.88% of revenue).
+- IMPLEMENTOS: 49 customers, R$998,078.00 (23.79%).
+- SERVIÇOS: 611 customers, R$603,880.40 (14.40%).
+- DIVERSOS: 661 customers, R$296,829.08 (7.08%).
+- ÓLEOS E LUBRIFICANTES: 405 customers, R$270,084.11 (6.44%).
+- TRATORES: one customer, R$188,000.00 (4.48%).
+
+PEÇAS, IMPLEMENTOS and SERVIÇOS together represent approximately
+80.1% of 12-month revenue. Group-level aggregation totaled
+R$4,194,807.94, R$0.03 above customer-level RFM revenue due to rounding.
+Customers can appear in multiple product groups; group customer counts
+must not be added to obtain unique active customers.
+
+Business Impact
+
+Parts are broad-based and recurrent, while implement and tractor sales
+have higher values and smaller customer populations. The difference
+supports product-aware interpretation of RFM and cross-selling.
+
+Recommendation
+
+Maintain product-group penetration, revenue and category-level customer
+behavior alongside customer RFM. Preserve the small rounding difference
+as a documented aggregation artifact.
+
+------------------------------------------------------------------------
+
+Insight 024 — Implement Buyers Show Cross-Category Purchasing Gaps
+
+Finding
+
+Among 49 identified customers who bought IMPLEMENTOS in the 12-month
+window:
+
+- 37 also bought PEÇAS (75.51%).
+- 28 also bought SERVIÇOS (57.14%).
+- 27 bought both PEÇAS and SERVIÇOS.
+- 10 bought PEÇAS but not SERVIÇOS.
+- One bought SERVIÇOS but not PEÇAS.
+- 11 bought neither PEÇAS nor SERVIÇOS (22.45%).
+
+The overlap is derived from inclusion-exclusion:
+49 - 11 = 38 customers buying at least one of the two categories;
+37 + 28 - 38 = 27 buying both.
+
+The 11 without either category generated R$115,832 in implement revenue
+and R$124,522 in total 12-month revenue; 10 were classified as At Risk
+and one as High-Value Occasional under the descriptive v2 rules.
+
+Business Impact
+
+The 11 customers provide a focused list for assessing possible
+cross-selling or after-sales engagement, but missing category purchases
+in the same 12-month window do not prove missed sales or establish
+purchase order.
+
+Recommendation
+
+Review these accounts individually and consider time since implement
+purchase, equipment requirements and existing supplier relationships.
+Distinguish co-occurrence from actual subsequent after-sales conversion.
+
+------------------------------------------------------------------------
+
+Insight 025 — Six Implement Buyers Have Lapsed Parts or Service History
+
+Finding
+
+Of the 11 implement buyers with no PEÇAS or SERVIÇOS purchases in the
+recent 12-month window:
+
+- Six purchased at least one of these categories in earlier historical
+  records; five have no recorded history in either category.
+- Customer 4118: 10 distinct historical PEÇAS transactions, 37 items,
+  R$1,965.84 in parts revenue; last parts purchase 2024-04-29.
+- Customer 1182: 10 distinct PEÇAS transactions, 18 items, R$2,482.40;
+  one SERVIÇOS transaction of R$20; last activity in these categories
+  2024-10-29.
+- Customer 3679: four distinct PEÇAS transactions, 10 items;
+  last parts purchase 2024-07-19.
+- Customer 3642: four distinct PEÇAS transactions, nine items;
+  last parts purchase 2025-02-05.
+- Customer 3840: two distinct PEÇAS transactions, eight items, and one
+  SERVIÇOS transaction; last parts purchase 2025-02-11.
+- Customer 1810: one PEÇAS transaction and one item worth R$8;
+  last parts purchase 2025-02-17.
+- Customers 122, 463, 499, 1319 and 4795 have no recorded PEÇAS or
+  SERVIÇOS purchases in the available integrated history.
+
+Four of the six returning-category candidates made at least four
+historical PEÇAS transactions. 'Items' counts sale-item rows, not
+unique purchase transactions.
+
+Business Impact
+
+The six customers with previous category engagement represent potential
+category reactivation, while the other five represent possible first
+observed category adoption. Customer 4118 merits review because of
+prior parts activity and R$29,500 in recent implement revenue; customer
+1182 also has prior engagement in both parts and services.
+
+Recommendation
+
+Build a reusable customer-by-product-group behavioral layer, retaining
+first and last purchase dates, distinct transaction counts and category
+revenue. Prioritize commercial validation of the 11-account list before
+claiming sales potential. Avoid hard-coded customer IDs in production
+reporting.
+
+------------------------------------------------------------------------
+
+V2 Implementation and Interpretation Notes
+
+- Analytical views: vw_sales_unified_classified,
+  vw_customer_historical_profile, vw_customer_rfm_base_v2,
+  vw_customer_rfm_scores_v2 and vw_customer_segments_v2.
+- The 12-month window is fixed at 2025-09-04 through 2026-09-03.
+- Frequency uses distinct source_system + sale_control, not sale-item
+  counts. Products and services in the same transaction count once.
+- RFM Monetary measures revenue, not profit.
+- Known profit is incomplete for some services and must not be used as
+  though all transactions have reliable cost.
+- Product-group purchase overlap does not imply temporal sequence.
+- Earlier Insights 013 and 017 concern a prior temporal after-sales
+  analysis and different customer cohorts; do not merge their counts
+  with the v2 49-customer co-occurrence result.
+- The current next step is a reusable customer-product-group behavior
+  layer to support Power BI, segment-specific cross-selling and
+  historically informed reactivation analysis.
