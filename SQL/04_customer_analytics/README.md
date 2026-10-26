@@ -128,3 +128,20 @@ Measures parts sales and revenue after a customer's first implement purchase in 
 
 ## Notes
 The script removes the environment-specific DEFINER/SQL SECURITY DEFINER clause. It preserves the original query logic. Not executed against the database.
+
+
+# vw_customer_first_implement_purchase
+
+**Purpose:** Find each customer's earliest IMPLEMENTOS purchase **within** the analysis window, not necessarily their first purchase ever.
+
+**Source:** `vw_sales_enriched` (current ERP), using `customer_key`.
+
+**Window:** 2025-07-08 inclusive to 2026-07-08 exclusive.
+
+**Output:** `customer_key`, `first_implement_purchase` = `MIN(sale_date)`.
+
+**Downstream dependency:** `vw_customer_after_sales` uses this date to count subsequent PECAS sales and revenue, with `sale_date > first_implement_purchase`; same-day purchases are excluded.
+
+**Limitations:** Does not use unified `customer_identity_id`; purchases before the window do not count toward the first date; no customer with zero IMPLEMENTOS purchases appears. Script not executed/tested against database.
+
+**Build order:** Create this view before `vw_customer_after_sales`, despite the existing documentation numbering.
