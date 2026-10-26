@@ -145,3 +145,45 @@ The script removes the environment-specific DEFINER/SQL SECURITY DEFINER clause.
 **Limitations:** Does not use unified `customer_identity_id`; purchases before the window do not count toward the first date; no customer with zero IMPLEMENTOS purchases appears. Script not executed/tested against database.
 
 **Build order:** Create this view before `vw_customer_after_sales`, despite the existing documentation numbering.
+
+
+# Customer commercial segmentation (original ERP)
+
+**File:** `sql/04_customer_analytics/09_create_customer_commercial_segment.sql`
+
+## Purpose and scope
+
+Combines `vw_customer_profile` (cp), `vw_customer_product_behavior` (pb) and `vw_customer_after_sales` (ca) by `customer_key`. This is the **original current-ERP layer**, not the consolidated `customer_identity_id` / RFM v2 layer. The reference date used for implement age is **2026-07-08**. Other date windows and metrics are inherited from upstream views.
+
+## Ordered classification rules
+
+The first matching condition wins:
+
+1. `AFTER-SALES OPPORTUNITY`: implement first purchase exists, at least 180 days elapsed, zero subsequent parts sales.
+2. `RECURRING COOLING DOWN`: dominant group PECAS, R <= 3, F >= 4.
+3. `HIGH VALUE EQUIPMENT`: dominant group IMPLEMENTOS or TRATORES, M >= 4.
+4. `CORE ACTIVE`: R >= 4, F >= 4, M >= 3.
+5. `HIGH VALUE OCCASIONAL`: M >= 4.
+6. `DORMANT HIGH POTENTIAL`: R = 1 and historical frequency >= 4 or historical revenue >= 3000.
+7. `LOW ENGAGEMENT`: fallback.
+
+## Important cautions
+
+- `AFTER-SALES OPPORTUNITY` is a rule-based sales lead, **not proof of unmet maintenance need**. Same-day parts sales are excluded by the upstream after-sales view.
+- `LEFT JOIN` retains customers with no product behavior or after-sales record.
+- The view exposes `cpf_cnpj` and `customer_name`. Do not commit query results, exported personal data or customer identities to public GitHub repositories.
+- Confirm that `vw_customer_profile` returns one row per `customer_key`. The upstream dominant-product view currently has no observed ties, but ties could duplicate rows later.
+- `CREATE OR REPLACE VIEW` replaces an existing view. Execute only after checking permissions and downstream dependencies.
+- This script is formatted from the supplied definition, not tested against the database.
+
+## Read-only validation
+
+```sql
+SELECT commercial_segment, COUNT(*) AS customers,
+       ROUND(SUM(monetary_12m), 2) AS revenue_12m
+FROM vw_customer_commercial_segment
+GROUP BY commercial_segment
+ORDER BY customers DESC;
+```
+
+For further dependency documentation, inspect `SHOW CREATE VIEW vw_customer_profile;`.
