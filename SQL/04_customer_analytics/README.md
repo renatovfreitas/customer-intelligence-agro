@@ -106,3 +106,25 @@ Summarizes purchases per `customer_key` in the original current-ERP 12-month ana
 - The source query does not filter on `vw_customer_master`.
 - The original `DEFINER` and `SQL SECURITY DEFINER` were omitted for portability. No calculation or filter was changed.
 - Not executed against the source database.
+
+
+# vw_customer_after_sales
+
+## Purpose
+Measures parts sales and revenue after a customer's first implement purchase in the original current-ERP analytics layer.
+
+## Dependencies
+- `vw_customer_first_implement_purchase` (`customer_key`, `first_implement_purchase`)
+- `vw_sales_enriched` (`customer_key`, `sale_date`, `sale_control`, `product_group`, `revenue`)
+
+## Business rules
+- One output row per `customer_key` and `first_implement_purchase`.
+- Only `product_group = 'PECAS'` is counted for after-sales metrics.
+- `sale_date > first_implement_purchase` excludes transactions on the same calendar date.
+- Sales joined through `sale_date < '2026-07-08'` (exclusive upper bound).
+- `LEFT JOIN` preserves customers without later parts sales, with zero metrics.
+- Uses the original `customer_key` and is not directly aligned with the consolidated RFM v2 `customer_identity_id`.
+- The start date and eligibility of the first implement purchase depend on the upstream view definition.
+
+## Notes
+The script removes the environment-specific DEFINER/SQL SECURITY DEFINER clause. It preserves the original query logic. Not executed against the database.
