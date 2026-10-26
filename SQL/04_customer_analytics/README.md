@@ -186,4 +186,27 @@ GROUP BY commercial_segment
 ORDER BY customers DESC;
 ```
 
+
+# vw_customer_profile
+
+- Source: `vw_customer_profile_base`.
+- Consumer: `vw_customer_commercial_segment`.
+- Original analytical model using `customer_key`; not the consolidated `customer_identity_id` model.
+- Preserves the exact R/F/M score thresholds of the supplied view.
+- `recency`, `frequency_12m`, and `monetary_12m` are inherited; dates and filters must be verified in `vw_customer_profile_base`.
+- The view includes `cpf_cnpj`: publish SQL definitions only, not customer records.
+- The SQL removes environment-specific DEFINER and SQL SECURITY DEFINER clauses.
+- Not executed or validated against the database.
+
+## Score rules
+
+- R: <=30:5; <=90:4; <=180:3; <=365:2; otherwise 1.
+- F: >=11:5; >=4:4; >=2:3; =1:2; otherwise 1.
+- M (BRL): >=10000:5; >=3000:4; >=500:3; >0:2; otherwise 1.
+
+## Deployment
+
+Create `vw_customer_profile_base` before this view; create `vw_customer_commercial_segment` afterward.
+
+
 For further dependency documentation, inspect `SHOW CREATE VIEW vw_customer_profile;`.
