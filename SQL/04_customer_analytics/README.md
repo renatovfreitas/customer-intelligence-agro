@@ -210,3 +210,27 @@ Create `vw_customer_profile_base` before this view; create `vw_customer_commerci
 
 
 For further dependency documentation, inspect `SHOW CREATE VIEW vw_customer_profile;`.
+
+
+# vw_customer_profile_base
+
+## Purpose
+Combine historical customer metrics from `vw_customer_master` with 12-month behavior from `vw_customer_behavior_12m` for the original RFM scoring model.
+
+## Dependencies
+- `vw_customer_master`: customer_key, customer_name, cpf_cnpj, days_since_last_purchase, revenue, profit, sales_qtt, last_purchase.
+- `vw_customer_behavior_12m`: frequency_12m, monetary_12m, profit_12m, profit_margin_12m.
+
+## Business rules
+- LEFT JOIN retains all customers in `vw_customer_master`, including those with no 12-month behavior row.
+- COALESCE sets missing frequency, monetary and profit metrics to 0.
+- Missing `profit_margin_12m` stays NULL.
+- `recency` is inherited from `vw_customer_master`, and is not recalculated here.
+- The 12-month window is inherited from `vw_customer_behavior_12m` (2025-07-08 inclusive through 2026-07-08 exclusive).
+- Uses `customer_key` and is not equivalent to the consolidated `customer_identity_id` in RFM v2.
+
+## Privacy
+The view exposes `cpf_cnpj`; do not publish actual query results with customer documents.
+
+## Deployment
+Execute after creating both upstream views. The original view used a database-specific DEFINER and SQL SECURITY DEFINER; the portable script omits both. SQL not executed against the database.
