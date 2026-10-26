@@ -82,3 +82,27 @@ HAVING COUNT(*) > 1;
 ```
 
 This script reproduces the supplied logic, removing environment-specific `DEFINER` and `SQL SECURITY DEFINER` clauses. Not executed against the database.
+
+
+# vw_customer_behavior_12m
+
+## Purpose
+Summarizes purchases per `customer_key` in the original current-ERP 12-month analysis window.
+
+## Dependencies
+- `vw_sales_enriched`
+
+## Business rules
+- Date range: `2025-07-08` inclusive to `2026-07-08` exclusive (through 2026-07-07).
+- One row per `customer_key` with sales during this period.
+- `frequency_12m`: distinct `sale_control` values.
+- `monetary_12m`: rounded sum of revenue.
+- `profit_12m`: rounded sum of profit.
+- `profit_margin_12m`: `SUM(profit) / NULLIF(SUM(revenue), 0)`, rounded to 4 decimals; may be NULL.
+- `last_purchase_12m`: most recent sale in the window.
+
+## Caveats
+- This is **not** the integrated RFM v2 view: it uses `customer_key`, not `customer_identity_id`, and a different date window.
+- The source query does not filter on `vw_customer_master`.
+- The original `DEFINER` and `SQL SECURITY DEFINER` were omitted for portability. No calculation or filter was changed.
+- Not executed against the source database.
