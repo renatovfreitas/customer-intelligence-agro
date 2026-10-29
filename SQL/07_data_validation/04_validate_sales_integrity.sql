@@ -129,7 +129,7 @@ Missing profit in the legacy ERP is explained by documented extraction rules and
 **Overall assessment: PASS WITH WARNINGS**
 
 The dataset is suitable for customer segmentation and commercial behavior analysis, subject to the documented limitations. Profitability analysis must explicitly account for records with missing financial information.
-/*
+
 ============================================================
 VALIDATION: LEGACY ERP RETURN CONSISTENCY
 ============================================================
@@ -166,7 +166,7 @@ Results refer to the validated analytical snapshot.
 Movement type and source user conditions were not directly
 revalidated in this query.
 ============================================================
-*/
+
 
 -- 1. Sales and returns quantity distribution
 
