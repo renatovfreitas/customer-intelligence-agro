@@ -24,9 +24,9 @@ SELECT
 
     analytical_product_group AS product_group,
 
-    ROUND(SUM(revenue), 2) AS revenue,
+    SUM(revenue) AS revenue,
 
-    ROUND(SUM(profit), 2) AS profit,
+    SUM(profit)AS profit,
 
     COUNT(
         DISTINCT CONCAT(
