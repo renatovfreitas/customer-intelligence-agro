@@ -1,0 +1,60 @@
+
+/*
+============================================================
+08 — CUSTOMER GROUP BEHAVIOR
+01 — CUSTOMER GROUP AGGREGATION
+============================================================
+
+Grain:
+customer_identity_id + product_group
+
+Source:
+vw_sales_unified_classified
+
+Period:
+Full available history
+
+============================================================
+*/
+
+CREATE OR REPLACE VIEW vw_customer_group_aggregation AS
+
+SELECT
+    customer_identity_id,
+
+    analytical_product_group AS product_group,
+
+    ROUND(SUM(revenue), 2) AS revenue,
+
+    ROUND(SUM(profit), 2) AS profit,
+
+    COUNT(
+        DISTINCT CONCAT(
+            source_system,
+            ':',
+            sale_control
+        )
+    ) AS sales_count,
+
+    SUM(quantity) AS items_quantity,
+
+    MIN(sale_date) AS first_purchase,
+
+    MAX(sale_date) AS last_purchase,
+
+    SUM(
+        CASE
+            WHEN profit IS NULL THEN 1
+            ELSE 0
+        END
+    ) AS missing_profit_rows
+
+FROM vw_sales_unified_classified
+
+WHERE customer_identity_id IS NOT NULL
+  AND analytical_product_group IS NOT NULL
+  AND transaction_type = 'SALE'
+
+GROUP BY
+    customer_identity_id,
+    analytical_product_group;
