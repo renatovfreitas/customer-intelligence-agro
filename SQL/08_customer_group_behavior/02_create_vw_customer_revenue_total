@@ -1,0 +1,23 @@
+
+/*
+============================================================
+08 — CUSTOMER GROUP BEHAVIOR
+02 — CUSTOMER REVENUE TOTAL
+============================================================
+*/
+
+CREATE OR REPLACE VIEW vw_customer_revenue_total AS
+
+SELECT
+    customer_identity_id,
+
+    ROUND(
+        SUM(revenue), 2
+    ) AS customer_total_revenue
+
+FROM vw_sales_unified_classified
+
+WHERE customer_identity_id IS NOT NULL
+  AND transaction_type = 'SALE'
+
+GROUP BY customer_identity_id;
