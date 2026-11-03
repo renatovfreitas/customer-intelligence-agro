@@ -1,0 +1,36 @@
+/*
+============================================================
+08 — CUSTOMER GROUP BEHAVIOR
+03 — FINAL CUSTOMER GROUP BEHAVIOR VIEW
+============================================================
+*/
+
+CREATE OR REPLACE VIEW vw_customer_group_behavior AS
+
+SELECT
+    grp.customer_identity_id,
+    grp.product_group,
+
+    grp.revenue,
+    grp.profit,
+    grp.sales_count,
+    grp.items_quantity,
+
+    grp.first_purchase,
+    grp.last_purchase,
+
+    totals.customer_total_revenue,
+
+    ROUND(
+        100.0 * grp.revenue
+        / NULLIF(totals.customer_total_revenue, 0),
+        2
+    ) AS group_revenue_pct,
+
+    grp.missing_profit_rows
+
+FROM vw_customer_group_aggregation AS grp
+
+INNER JOIN vw_customer_revenue_total AS totals
+    ON grp.customer_identity_id =
+       totals.customer_identity_id;
