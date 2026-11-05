@@ -1,0 +1,51 @@
+
+/*
+============================================================
+10 — COMMERCIAL PRIORITIZATION
+01 — PRODUCT GROUP COMMERCIAL POLICY
+============================================================
+
+Purpose:
+Assign a commercial purchase-cycle classification
+to each analytical product group.
+
+These are initial business assumptions and should
+be reviewed with the sales team.
+
+============================================================
+*/
+
+CREATE OR REPLACE VIEW vw_product_group_commercial_policy AS
+
+SELECT DISTINCT
+    analytical_product_group AS product_group,
+
+    CASE
+        WHEN analytical_product_group IN (
+            'PECAS',
+            'OLEOS E LUBRIFICANTES',
+            'SERVICOS'
+        )
+        THEN 'RECURRING'
+
+        WHEN analytical_product_group IN (
+            'TRATORES',
+            'IMPLEMENTOS'
+        )
+        THEN 'LONG_CYCLE'
+
+        WHEN analytical_product_group IN (
+            'JARDINAGEM',
+            'FERRAMENTAS',
+            'EPIs',
+            'LIMPEZA',
+            'DIVERSOS'
+        )
+        THEN 'OTHER'
+
+        ELSE 'UNCLASSIFIED'
+    END AS purchase_cycle
+
+FROM vw_sales_unified_classified
+
+WHERE analytical_product_group IS NOT NULL;
