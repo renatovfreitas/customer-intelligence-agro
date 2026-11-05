@@ -49,27 +49,40 @@ SELECT
 
     c.commercial_status,
 
-    CASE
-        WHEN p.purchase_cycle = 'RECURRING'
-         AND c.group_recency_days > 180
-         AND c.lifetime_revenue >= 5000
-        THEN 'P1_HIGH'
+    
+/*
+Commercial priority v2
 
-        WHEN p.purchase_cycle = 'RECURRING'
-         AND (
-             c.lifetime_revenue >= 1000
-             OR c.group_recency_days > 180
-         )
-        THEN 'P2_MEDIUM'
+Recurring groups:
+- P1: strong historical frequency and value
+- P2: meaningful frequency or value
+- P3: remaining inactive recurring groups
 
-        WHEN p.purchase_cycle = 'RECURRING'
-        THEN 'P3_MONITOR'
+Long-cycle groups:
+- Review complementary sales opportunities
+*/
 
-        WHEN p.purchase_cycle = 'LONG_CYCLE'
-        THEN 'LONG_CYCLE_REVIEW'
+CASE
+    WHEN p.purchase_cycle = 'RECURRING'
+     AND c.lifetime_sales_count >= 11
+     AND c.lifetime_revenue >= 5000
+    THEN 'P1_HIGH'
 
-        ELSE 'NOT_PRIORITIZED'
-    END AS commercial_priority,
+    WHEN p.purchase_cycle = 'RECURRING'
+     AND (
+         c.lifetime_sales_count >= 5
+         OR c.lifetime_revenue >= 1000
+     )
+    THEN 'P2_MEDIUM'
+
+    WHEN p.purchase_cycle = 'RECURRING'
+    THEN 'P3_MONITOR'
+
+    WHEN p.purchase_cycle = 'LONG_CYCLE'
+    THEN 'LONG_CYCLE_REVIEW'
+
+    ELSE 'NOT_PRIORITIZED'
+END AS commercial_priority,
 
     CASE
         WHEN p.purchase_cycle = 'RECURRING'
