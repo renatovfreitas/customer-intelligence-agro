@@ -6,28 +6,67 @@
 -- Note: Profit may be NULL where no known costs/profit are available.
 
 CREATE OR REPLACE VIEW vw_customer_rfm_base_v2 AS
+
 SELECT
-    s.customer_identity_id,
-    MIN(s.sale_date) AS first_purchase_date,
-    MAX(s.sale_date) AS last_purchase_date,
-    TO_DAYS('2026-09-03') - TO_DAYS(MAX(s.sale_date)) AS recency_days,
-    COUNT(DISTINCT CONCAT(CONVERT(s.source_system USING latin1), ':', s.sale_control)) AS total_purchases,
-    ROUND(SUM(s.revenue), 2) AS lifetime_revenue,
-    COUNT(DISTINCT CASE
-        WHEN s.sale_date >= '2025-09-04' AND s.sale_date <= '2026-09-03'
-        THEN CONCAT(CONVERT(s.source_system USING latin1), ':', s.sale_control)
-        ELSE NULL
-    END) AS frequency_12m,
-    ROUND(SUM(CASE
-        WHEN s.sale_date >= '2025-09-04' AND s.sale_date <= '2026-09-03'
-        THEN s.revenue ELSE 0
-    END), 2) AS monetary_12m,
-    ROUND(SUM(CASE
-        WHEN s.sale_date >= '2025-09-04' AND s.sale_date <= '2026-09-03'
-        THEN s.profit ELSE NULL
-    END), 2) AS profit_12m
-FROM vw_sales_unified_classified AS s
-WHERE s.customer_identity_id IS NOT NULL
-  AND s.sale_date >= '2018-01-01'
-  AND s.sale_date <= '2026-09-03'
-GROUP BY s.customer_identity_id;
+    customer_identity_id,
+
+    MIN(sale_date) AS first_purchase_date,
+    MAX(sale_date) AS last_purchase_date,
+
+    DATEDIFF(
+        '2026-09-03',
+        MAX(sale_date)
+    ) AS recency_days,
+
+    COUNT(
+        DISTINCT CONCAT(
+            source_system,
+            ':',
+            sale_control
+        )
+    ) AS total_purchases,
+
+    ROUND(SUM(revenue), 2) AS lifetime_revenue,
+
+    COUNT(
+        DISTINCT CASE
+            WHEN sale_date >= '2025-09-04'
+             AND sale_date <= '2026-09-03'
+            THEN CONCAT(
+                source_system,
+                ':',
+                sale_control
+            )
+            ELSE NULL
+        END
+    ) AS frequency_12m,
+
+    ROUND(
+        SUM(
+            CASE
+                WHEN sale_date >= '2025-09-04'
+                 AND sale_date <= '2026-09-03'
+                THEN revenue
+                ELSE 0
+            END
+        ), 2
+    ) AS monetary_12m,
+
+    ROUND(
+        SUM(
+            CASE
+                WHEN sale_date >= '2025-09-04'
+                 AND sale_date <= '2026-09-03'
+                THEN profit
+                ELSE NULL
+            END
+        ), 2
+    ) AS profit_12m
+
+FROM vw_sales_unified_classified
+
+WHERE customer_identity_id IS NOT NULL
+  AND sale_date >= '2018-01-01'
+  AND sale_date <= '2026-09-03'
+
+GROUP BY customer_identity_id;
